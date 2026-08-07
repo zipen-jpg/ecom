@@ -375,4 +375,20 @@
       data:{labels:labelHari,datasets:[{label:'Pendapatan',data:nilaiHari,backgroundColor:'#2563EB'}]}
     });
 
-    const jm
+    const jml = {};
+    transaksi.forEach(t=>t.items.forEach(i=>{jml[i.nama]=(jml[i.nama]||0)+i.qty;}));
+    const namaBrg = Object.keys(jml);
+    const jumlahBrg = Object.values(jml);
+    new Chart(document.getElementById('chartPie'),{
+      type:'doughnut',
+      data:{labels:namaBrg,datasets:[{data:jumlahBrg,backgroundColor:['#2563EB','#16a34a','#d97706','#db2777','#7c3aed']}]}
+    });
+    grafikSudah = true;
+  }
+
+  window.addEventListener('storage', (e) => {
+    if (e.key === KEY_PRODUK || e.key === KEY_TRANSAKSI) { muatSemua(); renderLaporan(); grafikSudah=false; }
+  });
+</script>
+</body>
+</html>
