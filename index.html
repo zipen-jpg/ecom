@@ -39,11 +39,14 @@
   .dot-live { position:relative; }
   .dot-live::before { content:''; position:absolute; inset:0; border-radius:9999px; background:currentColor; opacity:.6; animation: ping 1.8s cubic-bezier(0,0,0.2,1) infinite; }
   @keyframes ping { 75%,100% { transform: scale(2); opacity:0; } }
+  .page { display: none; }
+  .page.active { display: block; }
 </style>
 </head>
 <body class="bg-dark text-white pb-24">
 
-  <!-- NAVBAR -->
+<!-- ============= HALAMAN UTAMA ============= -->
+<div id="pageBeranda" class="page active">
   <div class="sticky top-0 z-30 bg-dark/95 backdrop-blur border-b border-gray-800">
     <div class="max-w-4xl mx-auto p-3">
       <div class="flex items-center justify-between gap-3 mb-3">
@@ -65,265 +68,244 @@
     </div>
   </div>
 
-  <!-- GRID PRODUK -->
   <div class="max-w-4xl mx-auto p-3">
     <div id="gridProduk" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2"></div>
     <p id="kosongMsg" class="hidden text-center text-gray-500 text-sm py-16">Produk tidak ditemukan.</p>
   </div>
+</div>
 
-  <!-- MODAL KERANJANG -->
-  <div id="modalKeranjang" class="hidden fixed inset-0 z-40 bg-black/70 flex items-end">
-    <div class="bg-card w-full max-w-4xl mx-auto rounded-t-2xl max-h-[85vh] flex flex-col border-t border-gray-700">
-      <div class="flex items-center justify-between p-4 border-b border-gray-800">
-        <h2 class="font-display font-700">Keranjang Belanja</h2>
-        <button onclick="tutupKeranjang()" class="text-gray-400 text-xl leading-none">✕</button>
-      </div>
-      <div id="isiKeranjang" class="overflow-y-auto flex-1 p-4 space-y-3"></div>
-      <div class="p-4 border-t border-gray-800 bg-card">
-        <div class="flex justify-between items-center mb-3">
-          <span class="text-gray-400 text-sm">Total</span>
-          <span id="totalKeranjang" class="font-num font-700 text-lg text-yellow-400">Rp 0</span>
-        </div>
-        <button onclick="checkout()" id="btnCheckout" class="w-full bg-primary py-3 rounded-lg font-display font-700 active:scale-95 transition">Checkout</button>
-      </div>
+<!-- ============= HALAMAN DETAIL PRODUK ============= -->
+<div id="pageDetail" class="page">
+  <div class="sticky top-0 z-30 bg-dark/95 backdrop-blur border-b border-gray-800">
+    <div class="max-w-4xl mx-auto p-3 flex items-center gap-3">
+      <button onclick="bukaHalaman('beranda')" class="text-xl">←</button>
+      <h1 class="font-display font-700">Detail Produk</h1>
     </div>
   </div>
+  <div class="max-w-2xl mx-auto p-3">
+    <img id="detGambar" class="w-full aspect-square object-cover rounded-xl">
+    <div class="mt-4 space-y-2">
+      <span id="detKategori" class="text-[10px] text-gray-500 uppercase tracking-wide"></span>
+      <h2 id="detNama" class="font-display font-700 text-xl"></h2>
+      <p id="detHarga" class="font-num font-700 text-primary text-2xl"></p>
+      <p id="detStok" class="text-[11px] font-num"></p>
+      <p id="detUkuran" class="text-sm text-gray-400"></p>
+      <p id="detWarna" class="text-sm text-gray-400"></p>
+    </div>
+    <div class="fixed bottom-0 left-0 right-0 bg-dark border-t border-gray-800 p-3 flex gap-2">
+      <button onclick="bukaKeranjang()" class="w-16 border border-primary text-primary rounded-lg py-3 text-lg">🛒</button>
+      <button onclick="bukaPesan()" class="flex-1 bg-primary rounded-lg py-3 font-display font-700">Beli Sekarang</button>
+    </div>
+  </div>
+</div>
 
-  <!-- TOAST -->
-  <div id="toastBox" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50"></div>
+<!-- ============= MODAL PILIHAN PEMBELIAN ============= -->
+<div id="modalPesan" class="hidden fixed inset-0 z-50 bg-black/80 flex items-end">
+  <div class="bg-card w-full max-w-md mx-auto rounded-t-2xl p-4 max-h-[80vh] overflow-y-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="font-display font-700">Pilih Pesanan</h3>
+      <button onclick="tutupPesan()" class="text-xl">✕</button>
+    </div>
+    <div class="space-y-3">
+      <div>
+        <label class="text-xs text-gray-400 mb-1 block">Jumlah</label>
+        <div class="flex items-center gap-3">
+          <button onclick="ubahJumlah(-1)" class="w-8 h-8 rounded border border-gray-700">-</button>
+          <span id="pJumlah" class="font-num">1</span>
+          <button onclick="ubahJumlah(1)" class="w-8 h-8 rounded border border-gray-700">+</button>
+        </div>
+      </div>
+      <div id="wrapUkuran">
+        <label class="text-xs text-gray-400 mb-1 block">Ukuran</label>
+        <div id="pilihUkuran" class="flex flex-wrap gap-2"></div>
+      </div>
+      <div id="wrapWarna">
+        <label class="text-xs text-gray-400 mb-1 block">Warna</label>
+        <div id="pilihWarna" class="flex flex-wrap gap-2"></div>
+      </div>
+    </div>
+    <div class="mt-4 flex gap-2">
+      <button onclick="tambahDariPesan()" class="flex-1 border border-primary text-primary rounded-lg py-2.5 text-sm">+ Keranjang</button>
+      <button onclick="langsungBeli()" class="flex-1 bg-primary rounded-lg py-2.5 text-sm font-display font-700">Beli</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============= MODAL KERANJANG ============= -->
+<div id="modalKeranjang" class="hidden fixed inset-0 z-40 bg-black/70 flex items-end">
+  <div class="bg-card w-full max-w-4xl mx-auto rounded-t-2xl max-h-[85vh] flex flex-col border-t border-gray-700">
+    <div class="flex items-center justify-between p-4 border-b border-gray-800">
+      <h2 class="font-display font-700">Keranjang Belanja</h2>
+      <button onclick="tutupKeranjang()" class="text-gray-400 text-xl leading-none">✕</button>
+    </div>
+    <div id="isiKeranjang" class="overflow-y-auto flex-1 p-4 space-y-3"></div>
+    <div class="p-4 border-t border-gray-800 bg-card">
+      <div class="flex justify-between items-center mb-3">
+        <span class="text-gray-400 text-sm">Total</span>
+        <span id="totalKeranjang" class="font-num font-700 text-lg text-yellow-400">Rp 0</span>
+      </div>
+      <button onclick="bukaPesanCheckout()" id="btnCheckout" class="w-full bg-primary py-3 rounded-lg font-display font-700 active:scale-95 transition">Checkout</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastBox" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50"></div>
 
 <script>
   const KEY_PRODUK = 'db_produk_tokohijau';
   const KEY_TRANSAKSI = 'db_transaksi_tokohijau';
   const KEY_KERANJANG = 'keranjang';
+  let idProdukAktif = null, dataProdukAktif = null;
+  let jumlahPesan = 1, ukuranPesan = '', warnaPesan = '';
 
   function ambilData(key) { return JSON.parse(localStorage.getItem(key)) || []; }
   function simpanData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
-  // --- GAMBAR OTOMATIS JIKA TIDAK ADA LINK ---
   function placeholderImg(nama, warna) {
     const huruf = (nama || '?').trim().charAt(0).toUpperCase();
-    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>
-      <rect width='200' height='200' fill='${warna}'/>
-      <text x='50%' y='55%' font-family='Sora, sans-serif' font-size='72' font-weight='800' fill='white' text-anchor='middle'>${huruf}</text>
-    </svg>`;
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='200' height='200' fill='${warna}'/><text x='50%' y='55%' font-size='72' font-weight='800' fill='white' text-anchor='middle'>${huruf}</text></svg>`;
     return 'data:image/svg+xml;base64,' + btoa(svg);
   }
 
-  // --- DATA AWAL ---
   function seedData() {
     if (localStorage.getItem(KEY_PRODUK)) return;
     const contoh = [
-      { nama:'Kaos Polos Combed', harga:75000, kategori:'Fashion', stok:20, warna:'#ff2b55', gambar:'' },
-      { nama:'Sepatu Sneakers Urban', harga:249000, kategori:'Fashion', stok:8, warna:'#00b37e', gambar:'' },
-      { nama:'Earphone Bluetooth', harga:129000, kategori:'Elektronik', stok:15, warna:'#2b6fff', gambar:'' },
-      { nama:'Power Bank 10000mAh', harga:159000, kategori:'Elektronik', stok:3, warna:'#ff7a2b', gambar:'' },
-      { nama:'Tote Bag Kanvas', harga:45000, kategori:'Aksesoris', stok:0, warna:'#9b5cff', gambar:'' },
-      { nama:'Topi Baseball', harga:59000, kategori:'Aksesoris', stok:12, warna:'#ffb400', gambar:'' },
-      { nama:'Kopi Susu Sachet', harga:18000, kategori:'Makanan', stok:30, warna:'#7a4b2b', gambar:'' },
-      { nama:'Keripik Pedas 250g', harga:22000, kategori:'Makanan', stok:5, warna:'#e63946', gambar:'' }
+      { nama:'Kaos Polos Combed', harga:75000, kategori:'Fashion', stok:20, warna:'#ff2b55', gambar:'', ukuran:'S,M,L,XL', varianWarna:'Merah,Putih,Hitam' },
+      { nama:'Sepatu Sneakers', harga:249000, kategori:'Fashion', stok:8, warna:'#00b37e', gambar:'', ukuran:'38,39,40,41,42', varianWarna:'Hitam,Putih' }
     ];
-    const produk = contoh.map(p => ({ id: Date.now() + Math.floor(Math.random()*10000), ...p }));
-    simpanData(KEY_PRODUK, produk);
+    simpanData(KEY_PRODUK, contoh.map(p=>({id:Date.now()+Math.random(),...p})));
   }
 
-  let keranjang = ambilData(KEY_KERANJANG);
-
-  function renderKategori() {
-    const produk = ambilData(KEY_PRODUK);
-    const kategoriUnik = ['Semua', ...new Set(produk.map(p => p.kategori))];
-    const aktif = window._kategoriAktif || 'Semua';
-    document.getElementById('kategoriChips').innerHTML = kategoriUnik.map(k => `
-      <button onclick="pilihKategori('${k}')"
-        class="whitespace-nowrap text-xs px-3 py-1.5 rounded-full border transition ${k===aktif ? 'bg-primary border-primary' : 'border-gray-700 text-gray-400'}">
-        ${k}
-      </button>`).join('');
+  function bukaHalaman(nama){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById(nama==='beranda'?'pageBeranda':'pageDetail').classList.add('active');
+    window.scrollTo(0,0);
   }
 
-  function pilihKategori(k) {
-    window._kategoriAktif = k;
-    renderKategori();
-    renderProduk();
+  function bukaDetail(id){
+    const p = ambilData(KEY_PRODUK).find(i=>i.id===id);
+    if(!p) return;
+    idProdukAktif = id; dataProdukAktif = p;
+    const gbr = p.gambar || placeholderImg(p.nama, p.warna||'#333');
+    document.getElementById('detGambar').src = gbr;
+    document.getElementById('detKategori').innerText = p.kategori;
+    document.getElementById('detNama').innerText = p.nama;
+    document.getElementById('detHarga').innerText = `Rp ${p.harga.toLocaleString('id-ID')}`;
+    document.getElementById('detStok').innerText = p.stok<=0?'Stok habis':`Tersedia ${p.stok} barang`;
+    document.getElementById('detUkuran').innerText = p.ukuran?`Ukuran tersedia: ${p.ukuran}`:'';
+    document.getElementById('detWarna').innerText = p.varianWarna?`Warna tersedia: ${p.varianWarna}`:'';
+    bukaHalaman('detail');
   }
 
-  function renderProduk() {
+  function bukaPesan(){
+    jumlahPesan = 1; ukuranPesan = ''; warnaPesan = '';
+    document.getElementById('pJumlah').innerText = jumlahPesan;
+    const u = dataProdukAktif.ukuran?dataProdukAktif.ukuran.split(','):[];
+    const w = dataProdukAktif.varianWarna?dataProdukAktif.varianWarna.split(','):[];
+    document.getElementById('wrapUkuran').style.display = u.length?'block':'none';
+    document.getElementById('pilihUkuran').innerHTML = u.map(x=>`<button onclick="pilihUkuran('${x}')" class="px-3 py-1 border border-gray-700 rounded text-xs">${x}</button>`).join('');
+    document.getElementById('wrapWarna').style.display = w.length?'block':'none';
+    document.getElementById('pilihWarna').innerHTML = w.map(x=>`<button onclick="pilihWarna('${x}')" class="px-3 py-1 border border-gray-700 rounded text-xs">${x}</button>`).join('');
+    document.getElementById('modalPesan').classList.remove('hidden');
+  }
+  function tutupPesan(){ document.getElementById('modalPesan').classList.add('hidden'); }
+  function ubahJumlah(n){
+    const stok = dataProdukAktif.stok;
+    jumlahPesan = Math.max(1, Math.min(stok, jumlahPesan+n));
+    document.getElementById('pJumlah').innerText = jumlahPesan;
+  }
+  function pilihUkuran(x){ ukuranPesan=x; document.querySelectorAll('#pilihUkuran button').forEach(b=>b.classList.toggle('border-primary',b.innerText===x)); }
+  function pilihWarna(x){ warnaPesan=x; document.querySelectorAll('#pilihWarna button').forEach(b=>b.classList.toggle('border-primary',b.innerText===x)); }
+
+  function tambahDariPesan(){
+    let keranjang = ambilData(KEY_KERANJANG);
+    const idx = keranjang.findIndex(i=>i.id===idProdukAktif && i.ukuran===ukuranPesan && i.warna===warnaPesan);
+    if(idx>=0) keranjang[idx].qty+=jumlahPesan;
+    else keranjang.push({id:idProdukAktif,qty:jumlahPesan,ukuran:ukuranPesan,warna:warnaPesan});
+    simpanData(KEY_KERANJANG,keranjang); perbaruiCounter(); tutupPesan(); tampilkanToast('Ditambahkan ke keranjang');
+  }
+  function langsungBeli(){ tambahDariPesan(); bukaKeranjang(); }
+
+  function bukaPesanCheckout(){ tutupKeranjang(); bukaPesan(); }
+
+  function renderKategori(){
+    const p = ambilData(KEY_PRODUK);
+    const u = ['Semua',...new Set(p.map(x=>x.kategori))];
+    const a = window._kat||'Semua';
+    document.getElementById('kategoriChips').innerHTML = u.map(k=>`<button onclick="pilihKat('${k}')" class="whitespace-nowrap text-xs px-3 py-1.5 rounded-full border ${k===a?'bg-primary border-primary':'border-gray-700 text-gray-400'}">${k}</button>`).join('');
+  }
+  function pilihKat(k){ window._kat=k; renderKategori(); renderProduk(); }
+  function renderProduk(){
     const semua = ambilData(KEY_PRODUK);
-    const cari = document.getElementById('cariInput').value.trim().toLowerCase();
-    const kategoriAktif = window._kategoriAktif || 'Semua';
-
-    const hasil = semua.filter(p => {
-      const cocokNama = p.nama.toLowerCase().includes(cari);
-      const cocokKategori = kategoriAktif === 'Semua' || p.kategori === kategoriAktif;
-      return cocokNama && cocokKategori;
-    });
-
-    document.getElementById('kosongMsg').classList.toggle('hidden', hasil.length > 0);
-
-    document.getElementById('gridProduk').innerHTML = hasil.map(p => {
-      const habis = p.stok <= 0;
-      const gambar = p.gambar || placeholderImg(p.nama, p.warna || '#333');
-      const statusStok = habis
-        ? `<span class="text-gray-500 dot-live text-primary">● Stok habis</span>`
-        : p.stok <= 3
-          ? `<span class="text-yellow-400 dot-live text-yellow-400">● Sisa ${p.stok}</span>`
-          : `<span class="text-hijau dot-live text-hijau">● Stok ${p.stok}</span>`;
-      return `
-      <div class="bg-card rounded-xl border border-gray-800 overflow-hidden flex flex-col">
-        <img src="${gambar}" onerror="this.src='${placeholderImg(p.nama,'#333')}'" class="w-full aspect-square object-cover">
+    const cari = document.getElementById('cariInput').value.toLowerCase();
+    const kat = window._kat||'Semua';
+    const hasil = semua.filter(p=>(kat==='Semua'||p.kategori===kat) && p.nama.toLowerCase().includes(cari));
+    document.getElementById('kosongMsg').classList.toggle('hidden',hasil.length);
+    document.getElementById('gridProduk').innerHTML = hasil.map(p=>{
+      const habis = p.stok<=0;
+      const g = p.gambar||placeholderImg(p.nama,p.warna||'#333');
+      return `<div class="bg-card rounded-xl border border-gray-800 overflow-hidden flex flex-col">
+        <img src="${g}" class="w-full aspect-square object-cover">
         <div class="p-2.5 flex flex-col gap-1 flex-1">
-          <span class="text-[10px] text-gray-500 uppercase tracking-wide">${p.kategori}</span>
-          <h3 class="text-sm font-medium leading-snug line-clamp-2">${p.nama}</h3>
-          <span class="font-num font-700 text-primary text-sm">Rp ${p.harga.toLocaleString('id-ID')}</span>
-          <span class="text-[11px] font-num">${statusStok}</span>
-          <button onclick="tambahKeKeranjang(${p.id})" ${habis ? 'disabled' : ''}
-            class="mt-1 w-full text-xs font-display font-700 py-2 rounded-lg transition ${habis ? 'bg-gray-800 text-gray-500' : 'bg-primary active:scale-95'}">
-            ${habis ? 'Stok Habis' : '+ Keranjang'}
-          </button>
+          <span class="text-[10px] text-gray-500 uppercase">${p.kategori}</span>
+          <h3 class="text-sm font-medium">${p.nama}</h3>
+          <span class="font-num font-700 text-primary">Rp ${p.harga.toLocaleString('id-ID')}</span>
+          <button onclick="bukaDetail(${p.id})" class="mt-1 w-full text-xs border border-primary text-primary py-1.5 rounded">Lihat Detail</button>
+          <button onclick="tambahKeKeranjang(${p.id})" ${habis?'disabled':''} class="mt-1 w-full text-xs font-bold py-2 rounded ${habis?'bg-gray-800 text-gray-500':'bg-primary'}">${habis?'Habis':'+ Keranjang'}</button>
         </div>
       </div>`;
     }).join('');
   }
 
-  function tambahKeKeranjang(id) {
-    const produk = ambilData(KEY_PRODUK);
-    const p = produk.find(i => i.id === id);
-    if (!p || p.stok <= 0) return tampilkanToast('Stok tidak tersedia');
-
-    const item = keranjang.find(i => i.id === id);
-    const qtyDiKeranjang = item ? item.qty : 0;
-    if (qtyDiKeranjang >= p.stok) return tampilkanToast('Stok maksimal tercapai');
-
-    if (item) item.qty++;
-    else keranjang.push({ id, qty: 1 });
-
-    simpanData(KEY_KERANJANG, keranjang);
-    perbaruiCounter();
-    tampilkanToast(`${p.nama} ditambahkan`);
+  function tambahKeKeranjang(id){
+    const p = ambilData(KEY_PRODUK).find(i=>i.id===id);
+    if(!p||p.stok<=0) return tampilkanToast('Stok habis');
+    let k = ambilData(KEY_KERANJANG);
+    const x = k.find(i=>i.id===id);
+    x?x.qty++:k.push({id,qty:1,ukuran:'',warna:''});
+    simpanData(KEY_KERANJANG,k); perbaruiCounter(); tampilkanToast('Ditambahkan');
   }
-
-  function perbaruiCounter() {
-    const total = keranjang.reduce((sum, i) => sum + i.qty, 0);
-    const el = document.getElementById('cartCount');
-    el.innerText = total;
-    el.classList.remove('pop');
-    void el.offsetWidth;
-    el.classList.add('pop');
+  function perbaruiCounter(){
+    const total = ambilData(KEY_KERANJANG).reduce((s,i)=>s+i.qty,0);
+    document.getElementById('cartCount').innerText = total;
   }
-
-  function bukaKeranjang() {
-    renderKeranjang();
-    document.getElementById('modalKeranjang').classList.remove('hidden');
-  }
-  function tutupKeranjang() {
-    document.getElementById('modalKeranjang').classList.add('hidden');
-  }
-
-  function renderKeranjang() {
-    const produk = ambilData(KEY_PRODUK);
+  function bukaKeranjang(){ renderKeranjang(); document.getElementById('modalKeranjang').classList.remove('hidden'); }
+  function tutupKeranjang(){ document.getElementById('modalKeranjang').classList.add('hidden'); }
+  function renderKeranjang(){
+    const produk = ambilData(KEY_PRODUK), k = ambilData(KEY_KERANJANG);
     const isi = document.getElementById('isiKeranjang');
-
-    if (keranjang.length === 0) {
-      isi.innerHTML = `<p class="text-center text-gray-500 text-sm py-10">Keranjang masih kosong.</p>`;
-      document.getElementById('totalKeranjang').innerText = 'Rp 0';
-      return;
-    }
-
-    let total = 0;
-    isi.innerHTML = keranjang.map(item => {
-      const p = produk.find(x => x.id === item.id);
-      if (!p) return '';
-      const subtotal = p.harga * item.qty;
-      total += subtotal;
-      return `
-      <div class="flex items-center gap-3 border-b border-gray-800 pb-3">
-        <img src="${p.gambar || placeholderImg(p.nama, p.warna || '#333')}" class="w-14 h-14 rounded-lg object-cover">
-        <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium truncate">${p.nama}</p>
-          <p class="font-num text-xs text-gray-400">Rp ${p.harga.toLocaleString('id-ID')} x ${item.qty}</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="ubahQty(${p.id},-1)" class="w-7 h-7 rounded-lg border border-gray-700 text-sm">-</button>
-          <span class="font-num text-sm w-4 text-center">${item.qty}</span>
-          <button onclick="ubahQty(${p.id},1)" class="w-7 h-7 rounded-lg border border-gray-700 text-sm">+</button>
-        </div>
+    if(!k.length){ isi.innerHTML='<p class="text-center text-gray-500 py-10">Kosong</p>'; return; }
+    let total=0;
+    isi.innerHTML = k.map(i=>{
+      const p = produk.find(x=>x.id===i.id); if(!p) return '';
+      total += p.harga*i.qty;
+      return `<div class="flex items-center gap-3 border-b border-gray-800 pb-3">
+        <img src="${p.gambar||placeholderImg(p.nama,p.warna||'#333')}" class="w-14 h-14 rounded">
+        <div class="flex-1"><p class="text-sm">${p.nama}</p><p class="text-xs text-gray-400">${i.ukuran?i.ukuran+' ':''}${i.warna?i.warna:''} x${i.qty}</p></div>
+        <div class="flex gap-2"><button onclick="ubahQty(${i.id},-1,'${i.ukuran}','${i.warna}')" class="w-7 h-7 rounded border">-</button><span>${i.qty}</span><button onclick="ubahQty(${i.id},1,'${i.ukuran}','${i.warna}')" class="w-7 h-7 rounded border">+</button></div>
       </div>`;
     }).join('');
-
     document.getElementById('totalKeranjang').innerText = `Rp ${total.toLocaleString('id-ID')}`;
   }
-
-  function ubahQty(id, delta) {
-    const produk = ambilData(KEY_PRODUK);
-    const p = produk.find(x => x.id === id);
-    const item = keranjang.find(x => x.id === id);
-    if (!item) return;
-
-    item.qty += delta;
-    if (item.qty <= 0) {
-      keranjang = keranjang.filter(x => x.id !== id);
-    } else if (p && item.qty > p.stok) {
-      item.qty = p.stok;
-      tampilkanToast('Stok maksimal tercapai');
-    }
-    simpanData(KEY_KERANJANG, keranjang);
-    renderKeranjang();
-    perbaruiCounter();
+  function ubahQty(id,d,uk,wr){
+    let k = ambilData(KEY_KERANJANG);
+    const idx = k.findIndex(i=>i.id===id && i.ukuran===uk && i.warna===wr);
+    if(idx<0) return;
+    k[idx].qty+=d;
+    if(k[idx].qty<=0) k.splice(idx,1);
+    simpanData(KEY_KERANJANG,k); renderKeranjang(); perbaruiCounter();
+  }
+  function checkout(){
+    let k = ambilData(KEY_KERANJANG), p = ambilData(KEY_PRODUK);
+    k.forEach(i=>{ const brg = p.find(x=>x.id===i.id); if(brg) brg.stok-=i.qty; });
+    simpanData(KEY_PRODUK,p); simpanData(KEY_KERANJANG,[]);
+    tutupKeranjang(); perbaruiCounter(); renderProduk(); tampilkanToast('Berhasil!');
+  }
+  function tampilkanToast(m){
+    const t = document.createElement('div'); t.className='toast-in bg-white text-dark text-sm px-4 py-2 rounded mb-2'; t.innerText=m; document.getElementById('toastBox').appendChild(t); setTimeout(()=>t.remove(),2000);
   }
 
-  function checkout() {
-    if (keranjang.length === 0) return tampilkanToast('Keranjang masih kosong');
-
-    let produk = ambilData(KEY_PRODUK);
-    let total = 0;
-    const itemTransaksi = [];
-
-    for (const item of keranjang) {
-      const p = produk.find(x => x.id === item.id);
-      if (!p || p.stok < item.qty) {
-        return tampilkanToast(`Stok "${p ? p.nama : 'produk'}" tidak cukup`);
-      }
-    }
-
-    keranjang.forEach(item => {
-      const p = produk.find(x => x.id === item.id);
-      p.stok -= item.qty;
-      total += p.harga * item.qty;
-      itemTransaksi.push({ id: p.id, nama: p.nama, harga: p.harga, qty: item.qty, kategori: p.kategori });
-    });
-
-    simpanData(KEY_PRODUK, produk);
-
-    const transaksi = ambilData(KEY_TRANSAKSI);
-    transaksi.push({ id: Date.now(), tanggal: new Date().toISOString(), items: itemTransaksi, total, status: 'Selesai' });
-    simpanData(KEY_TRANSAKSI, transaksi);
-
-    keranjang = [];
-    simpanData(KEY_KERANJANG, keranjang);
-
-    tutupKeranjang();
-    perbaruiCounter();
-    renderProduk();
-    renderKategori();
-    tampilkanToast('Checkout berhasil! Terima kasih 🎉');
-  }
-
-  function tampilkanToast(msg) {
-    const box = document.getElementById('toastBox');
-    const el = document.createElement('div');
-    el.className = 'toast-in bg-white text-dark text-sm font-medium px-4 py-2.5 rounded-lg shadow-lg mb-2';
-    el.innerText = msg;
-    box.appendChild(el);
-    setTimeout(() => el.remove(), 2200);
-  }
-
-  window.addEventListener('storage', (e) => {
-    if (e.key === KEY_PRODUK) { renderProduk(); renderKategori(); }
-  });
-
-  seedData();
-  renderKategori();
-  renderProduk();
-  perbaruiCounter();
+  seedData(); renderKategori(); renderProduk();
 </script>
 </body>
 </html>
