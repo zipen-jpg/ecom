@@ -301,6 +301,31 @@
     tampilkanToast('Data contoh dipasang ulang');
   }
 
+  // ============== FUNGSI LOGIN YANG DIPERBAIKI ==============
+  function login(e) {
+    e.preventDefault();
+    const user = document.getElementById('loginUser').value.trim();
+    const pass = document.getElementById('loginPass').value.trim();
+    
+    // Data akun demo
+    if (user === 'admin' && pass === 'admin123') {
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('appScreen').classList.remove('hidden');
+      seedData();
+      muatSemua();
+    } else {
+      document.getElementById('loginError').classList.remove('hidden');
+    }
+  }
+
+  function logout() {
+    document.getElementById('appScreen').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginError').classList.add('hidden');
+  }
+
   // ---------------- SIDEBAR & NAVIGASI ----------------
   const JUDUL_VIEW = { dashboard:'Dashboard', produk:'Data Produk', laporan:'Laporan Penjualan', grafik:'Grafik' };
 
@@ -348,24 +373,4 @@
     renderTabelProduk(produkSemua);
   }
 
-  function renderRiwayat(transaksi) {
-    const terbaru = [...transaksi].reverse().slice(0, 6);
-    document.getElementById('riwayatKosong').classList.toggle('hidden', terbaru.length > 0);
-    document.getElementById('riwayatTransaksi').innerHTML = terbaru.map(t => {
-      const tgl = new Date(t.tanggal).toLocaleString('id-ID', { dateStyle:'medium', timeStyle:'short' });
-      const ringkasan = t.items.map(i => `${i.nama} x${i.qty}`).join(', ');
-      return `
-      <div class="flex items-center justify-between border-b border-gray-100 pb-2 text-xs">
-        <div class="min-w-0 pr-2">
-          <p class="truncate text-gray-700">${ringkasan}</p>
-          <p class="text-[10px] text-gray-400">${tgl}</p>
-        </div>
-        <span class="font-num text-hijau whitespace-nowrap">Rp ${t.total.toLocaleString('id-ID')}</span>
-      </div>`;
-    }).join('');
-  }
-
-  // ---------------- DATA PRODUK (CRUD) ----------------
-  let idEdit = null;
-
-  function render
+  function renderRiwayat(trans
