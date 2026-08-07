@@ -6,246 +6,306 @@
 <title>Toko Online</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <script>
   tailwind.config = {
     theme: {
       extend: {
-        colors: { primary: '#ff2b55', dark: '#0d0d0d', card: '#181818' },
-        fontFamily: { display: ['Sora', 'sans-serif'], body: ['Plus Jakarta Sans', 'sans-serif'] }
+        colors: {
+          primary: '#ff2b55',
+          dark: '#0d0d0d',
+          card: '#181818',
+          hijau: '#00b37e'
+        },
+        fontFamily: {
+          display: ['Sora', 'sans-serif'],
+          body: ['Plus Jakarta Sans', 'sans-serif'],
+          mono: ['JetBrains Mono', 'monospace']
+        }
       }
     }
   }
 </script>
 <style>
   body { font-family: 'Plus Jakarta Sans', sans-serif; }
+  .font-display { font-family: 'Sora', sans-serif; }
+  .font-num { font-family: 'JetBrains Mono', monospace; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+  @keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
+  .pop { animation: pop .35s ease; }
+  @keyframes slideIn { from { transform: translateY(120%); opacity:0; } to { transform: translateY(0); opacity:1; } }
+  .toast-in { animation: slideIn .3s ease; }
+  .dot-live { position:relative; }
+  .dot-live::before { content:''; position:absolute; inset:0; border-radius:9999px; background:currentColor; opacity:.6; animation: ping 1.8s cubic-bezier(0,0,0.2,1) infinite; }
+  @keyframes ping { 75%,100% { transform: scale(2); opacity:0; } }
   .page { display: none; }
   .page.active { display: block; }
-  .gambar-placeholder { display: flex; align-items: center; justify-content: center; font-size: 4rem; font-weight: 800; }
 </style>
 </head>
 <body class="bg-dark text-white pb-24">
 
-<!-- HALAMAN UTAMA -->
-<div id="halamanUtama" class="page active">
+<!-- ============= HALAMAN UTAMA ============= -->
+<div id="pageBeranda" class="page active">
   <div class="sticky top-0 z-30 bg-dark/95 backdrop-blur border-b border-gray-800">
     <div class="max-w-4xl mx-auto p-3">
-      <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center justify-between gap-3 mb-3">
         <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-bold">⚡</div>
-          <h1 class="font-bold text-lg">Toko<span class="text-primary">.</span></h1>
+          <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-display font-800 text-sm">⚡</div>
+          <h1 class="font-display font-800 text-lg tracking-tight">Toko<span class="text-primary">.</span></h1>
         </div>
         <div class="flex items-center gap-2">
-          <button onclick="bukaKeranjang()" class="relative border border-gray-700 rounded-lg px-3 py-2">
-            🛒 <span id="jumlahKeranjang" class="absolute -top-2 -right-2 bg-primary text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
+          <button onclick="bukaKeranjang()" class="relative border border-gray-700 rounded-lg px-3 py-2 text-sm active:scale-95 transition">
+            🛒
+            <span id="cartCount" class="absolute -top-2 -right-2 bg-primary text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center font-num">0</span>
           </button>
-          <a href="admin.html" class="text-xs border border-gray-700 rounded-lg px-3 py-2">Admin</a>
+          <a href="admin.html" class="text-xs border border-gray-700 rounded-lg px-3 py-2 whitespace-nowrap active:scale-95 transition">Admin →</a>
         </div>
       </div>
-      <input id="cariProduk" oninput="tampilkanProduk()" type="text" placeholder="Cari produk..." class="w-full bg-card border border-gray-800 rounded-lg p-2.5 text-sm outline-none">
-      <div id="daftarKategori" class="flex gap-2 overflow-x-auto mt-3 pb-1"></div>
+      <input id="cariInput" oninput="renderProduk()" type="text" placeholder="Cari produk..."
+        class="w-full bg-card border border-gray-800 rounded-lg p-2.5 text-sm outline-none focus:border-primary transition">
+      <div id="kategoriChips" class="flex gap-2 overflow-x-auto mt-3 pb-1"></div>
     </div>
   </div>
 
   <div class="max-w-4xl mx-auto p-3">
-    <div id="gridProduk" class="grid grid-cols-2 gap-3"></div>
+    <div id="gridProduk" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2"></div>
+    <p id="kosongMsg" class="hidden text-center text-gray-500 text-sm py-16">Produk tidak ditemukan.</p>
   </div>
 </div>
 
-<!-- HALAMAN DETAIL -->
-<div id="halamanDetail" class="page">
+<!-- ============= HALAMAN DETAIL PRODUK ============= -->
+<div id="pageDetail" class="page">
   <div class="sticky top-0 z-30 bg-dark/95 backdrop-blur border-b border-gray-800">
     <div class="max-w-4xl mx-auto p-3 flex items-center gap-3">
-      <button onclick="kembaliKeUtama()" class="text-xl">←</button>
-      <h1 class="font-bold">Detail Produk</h1>
+      <button onclick="bukaHalaman('beranda')" class="text-xl">←</button>
+      <h1 class="font-display font-700">Detail Produk</h1>
     </div>
   </div>
   <div class="max-w-2xl mx-auto p-3">
-    <div id="gambarDetail" class="w-full aspect-square rounded-xl"></div>
+    <img id="detGambar" class="w-full aspect-square object-cover rounded-xl">
     <div class="mt-4 space-y-2">
-      <span id="katDetail" class="text-xs text-gray-400"></span>
-      <h2 id="namaDetail" class="font-bold text-xl"></h2>
-      <p id="hargaDetail" class="font-bold text-primary text-2xl"></p>
-      <p id="stokDetail" class="text-xs text-gray-400"></p>
-      <p id="ukuranDetail" class="text-sm"></p>
-      <p id="warnaDetail" class="text-sm"></p>
+      <span id="detKategori" class="text-[10px] text-gray-500 uppercase tracking-wide"></span>
+      <h2 id="detNama" class="font-display font-700 text-xl"></h2>
+      <p id="detHarga" class="font-num font-700 text-primary text-2xl"></p>
+      <p id="detStok" class="text-[11px] font-num"></p>
+      <p id="detUkuran" class="text-sm text-gray-400"></p>
+      <p id="detWarna" class="text-sm text-gray-400"></p>
     </div>
     <div class="fixed bottom-0 left-0 right-0 bg-dark border-t border-gray-800 p-3 flex gap-2">
       <button onclick="bukaKeranjang()" class="w-16 border border-primary text-primary rounded-lg py-3 text-lg">🛒</button>
-      <button onclick="bukaPilihan()" class="flex-1 bg-primary rounded-lg py-3 font-bold">Beli Sekarang</button>
+      <button onclick="bukaPesan()" class="flex-1 bg-primary rounded-lg py-3 font-display font-700">Beli Sekarang</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL PILIHAN -->
-<div id="modalPilihan" class="hidden fixed inset-0 z-50 bg-black/80 flex items-end">
-  <div class="bg-card w-full p-4 rounded-t-2xl">
+<!-- ============= MODAL PILIHAN PEMBELIAN ============= -->
+<div id="modalPesan" class="hidden fixed inset-0 z-50 bg-black/80 flex items-end">
+  <div class="bg-card w-full max-w-md mx-auto rounded-t-2xl p-4 max-h-[80vh] overflow-y-auto">
     <div class="flex justify-between items-center mb-4">
-      <h3 class="font-bold">Pilih Pesanan</h3>
-      <button onclick="tutupPilihan()" class="text-xl">✕</button>
+      <h3 class="font-display font-700">Pilih Pesanan</h3>
+      <button onclick="tutupPesan()" class="text-xl">✕</button>
     </div>
     <div class="space-y-3">
-      <div class="flex items-center gap-3">
-        <span class="text-xs">Jumlah:</span>
-        <button onclick="ubahJumlah(-1)" class="w-8 h-8 rounded border border-gray-700">-</button>
-        <span id="nilaiJumlah" class="font-bold">1</span>
-        <button onclick="ubahJumlah(1)" class="w-8 h-8 rounded border border-gray-700">+</button>
+      <div>
+        <label class="text-xs text-gray-400 mb-1 block">Jumlah</label>
+        <div class="flex items-center gap-3">
+          <button onclick="ubahJumlah(-1)" class="w-8 h-8 rounded border border-gray-700">-</button>
+          <span id="pJumlah" class="font-num">1</span>
+          <button onclick="ubahJumlah(1)" class="w-8 h-8 rounded border border-gray-700">+</button>
+        </div>
       </div>
-      <div id="kotakUkuran" class="hidden">
-        <p class="text-xs mb-1">Ukuran:</p>
+      <div id="wrapUkuran">
+        <label class="text-xs text-gray-400 mb-1 block">Ukuran</label>
         <div id="pilihUkuran" class="flex flex-wrap gap-2"></div>
       </div>
-      <div id="kotakWarna" class="hidden">
-        <p class="text-xs mb-1">Warna:</p>
+      <div id="wrapWarna">
+        <label class="text-xs text-gray-400 mb-1 block">Warna</label>
         <div id="pilihWarna" class="flex flex-wrap gap-2"></div>
       </div>
     </div>
     <div class="mt-4 flex gap-2">
-      <button onclick="masukKeranjang()" class="flex-1 border border-primary text-primary rounded-lg py-2.5">+ Keranjang</button>
-      <button onclick="beliLangsung()" class="flex-1 bg-primary rounded-lg py-2.5 font-bold">Beli</button>
+      <button onclick="tambahDariPesan()" class="flex-1 border border-primary text-primary rounded-lg py-2.5 text-sm">+ Keranjang</button>
+      <button onclick="langsungBeli()" class="flex-1 bg-primary rounded-lg py-2.5 text-sm font-display font-700">Beli</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL KERANJANG -->
+<!-- ============= MODAL KERANJANG ============= -->
 <div id="modalKeranjang" class="hidden fixed inset-0 z-40 bg-black/70 flex items-end">
-  <div class="bg-card w-full max-w-4xl mx-auto rounded-t-2xl max-h-[80vh] flex flex-col">
-    <div class="flex justify-between p-4 border-b border-gray-800">
-      <h2 class="font-bold">Keranjang</h2>
-      <button onclick="tutupKeranjang()" class="text-xl">✕</button>
+  <div class="bg-card w-full max-w-4xl mx-auto rounded-t-2xl max-h-[85vh] flex flex-col border-t border-gray-700">
+    <div class="flex items-center justify-between p-4 border-b border-gray-800">
+      <h2 class="font-display font-700">Keranjang Belanja</h2>
+      <button onclick="tutupKeranjang()" class="text-gray-400 text-xl leading-none">✕</button>
     </div>
-    <div id="isiKeranjang" class="flex-1 overflow-y-auto p-4"></div>
-    <div class="p-4 border-t border-gray-800">
-      <div class="flex justify-between mb-3">
-        <span>Total</span>
-        <span id="totalHarga" class="font-bold text-yellow-400">Rp 0</span>
+    <div id="isiKeranjang" class="overflow-y-auto flex-1 p-4 space-y-3"></div>
+    <div class="p-4 border-t border-gray-800 bg-card">
+      <div class="flex justify-between items-center mb-3">
+        <span class="text-gray-400 text-sm">Total</span>
+        <span id="totalKeranjang" class="font-num font-700 text-lg text-yellow-400">Rp 0</span>
       </div>
-      <button onclick="bukaPilihan()" class="w-full bg-primary py-3 rounded-lg font-bold">Checkout</button>
+      <button onclick="bukaPesanCheckout()" id="btnCheckout" class="w-full bg-primary py-3 rounded-lg font-display font-700 active:scale-95 transition">Checkout</button>
     </div>
   </div>
 </div>
+
+<div id="toastBox" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50"></div>
 
 <script>
-const DB_PRODUK = 'db_toko_produk';
-const DB_KERANJANG = 'db_toko_keranjang';
-let produkAktif = null, jumlah = 1, pilihU = '', pilihW = '';
+  const KEY_PRODUK = 'db_produk_tokohijau';
+  const KEY_TRANSAKSI = 'db_transaksi_tokohijau';
+  const KEY_KERANJANG = 'keranjang';
+  let idProdukAktif = null, dataProdukAktif = null;
+  let jumlahPesan = 1, ukuranPesan = '', warnaPesan = '';
 
-function ambilData(k) { return JSON.parse(localStorage.getItem(k)) || []; }
-function simpanData(k, d) { localStorage.setItem(k, JSON.stringify(d)); }
+  function ambilData(key) { return JSON.parse(localStorage.getItem(key)) || []; }
+  function simpanData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
-// Gambar otomatis jika tidak ada link
-function buatGambarHuruf(nama, warna) {
-  const h = (nama||'?')[0].toUpperCase();
-  const svg = `<svg width="300" height="300"><rect width="100%" height="100%" fill="${warna}"/><text x="50%" y="55%" font-size="120" font-weight="bold" fill="white" text-anchor="middle">${h}</text></svg>`;
-  return 'data:image/svg+xml;base64,' + btoa(svg);
-}
+  function placeholderImg(nama, warna) {
+    const huruf = (nama || '?').trim().charAt(0).toUpperCase();
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='200' height='200' fill='${warna}'/><text x='50%' y='55%' font-size='72' font-weight='800' fill='white' text-anchor='middle'>${huruf}</text></svg>`;
+    return 'data:image/svg+xml;base64,' + btoa(svg);
+  }
 
-// Data contoh pertama kali
-if (!localStorage.getItem(DB_PRODUK)) {
-  const awal = [
-    { id:1, nama:'Kaos Polos Combed', harga:75000, kategori:'Fashion', stok:20, warna:'#ff2b55', gambar:'', ukuran:'S,M,L,XL', varianWarna:'Merah,Putih,Hitam' },
-    { id:2, nama:'Sepatu Sneakers Urban', harga:249000, kategori:'Fashion', stok:8, warna:'#ff9933', gambar:'', ukuran:'38,39,40,41,42', varianWarna:'Hitam,Putih' }
-  ];
-  simpanData(DB_PRODUK, awal);
-}
+  function seedData() {
+    if (localStorage.getItem(KEY_PRODUK)) return;
+    const contoh = [
+      { nama:'Kaos Polos Combed', harga:75000, kategori:'Fashion', stok:20, warna:'#ff2b55', gambar:'', ukuran:'S,M,L,XL', varianWarna:'Merah,Putih,Hitam' },
+      { nama:'Sepatu Sneakers', harga:249000, kategori:'Fashion', stok:8, warna:'#00b37e', gambar:'', ukuran:'38,39,40,41,42', varianWarna:'Hitam,Putih' }
+    ];
+    simpanData(KEY_PRODUK, contoh.map(p=>({id:Date.now()+Math.random(),...p})));
+  }
 
-function bukaHalaman(nama) {
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById(nama).classList.add('active');
-}
-function kembaliKeUtama() { bukaHalaman('halamanUtama'); }
+  function bukaHalaman(nama){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById(nama==='beranda'?'pageBeranda':'pageDetail').classList.add('active');
+    window.scrollTo(0,0);
+  }
 
-function bukaDetail(id) {
-  const p = ambilData(DB_PRODUK).find(x=>x.id===id);
-  if(!p) return;
-  produkAktif = p;
-  const gbr = p.gambar || buatGambarHuruf(p.nama, p.warna);
-  document.getElementById('gambarDetail').innerHTML = `<img src="${gbr}" class="w-full h-full object-cover rounded-xl">`;
-  document.getElementById('katDetail').innerText = p.kategori;
-  document.getElementById('namaDetail').innerText = p.nama;
-  document.getElementById('hargaDetail').innerText = `Rp ${p.harga.toLocaleString('id-ID')}`;
-  document.getElementById('stokDetail').innerText = p.stok<=0 ? 'Stok habis' : `Sisa ${p.stok} buah`;
-  document.getElementById('ukuranDetail').innerText = p.ukuran ? `Ukuran: ${p.ukuran}` : '';
-  document.getElementById('warnaDetail').innerText = p.varianWarna ? `Warna: ${p.varianWarna}` : '';
-  bukaHalaman('halamanDetail');
-}
+  function bukaDetail(id){
+    const p = ambilData(KEY_PRODUK).find(i=>i.id===id);
+    if(!p) return;
+    idProdukAktif = id; dataProdukAktif = p;
+    const gbr = p.gambar || placeholderImg(p.nama, p.warna||'#333');
+    document.getElementById('detGambar').src = gbr;
+    document.getElementById('detKategori').innerText = p.kategori;
+    document.getElementById('detNama').innerText = p.nama;
+    document.getElementById('detHarga').innerText = `Rp ${p.harga.toLocaleString('id-ID')}`;
+    document.getElementById('detStok').innerText = p.stok<=0?'Stok habis':`Tersedia ${p.stok} barang`;
+    document.getElementById('detUkuran').innerText = p.ukuran?`Ukuran tersedia: ${p.ukuran}`:'';
+    document.getElementById('detWarna').innerText = p.varianWarna?`Warna tersedia: ${p.varianWarna}`:'';
+    bukaHalaman('detail');
+  }
 
-function tampilkanProduk() {
-  const semua = ambilData(DB_PRODUK);
-  const cari = document.getElementById('cariProduk').value.toLowerCase();
-  const hasil = semua.filter(p=>p.nama.toLowerCase().includes(cari));
-  document.getElementById('gridProduk').innerHTML = hasil.map(p=>{
-    const g = p.gambar || buatGambarHuruf(p.nama, p.warna);
-    return `
-    <div class="bg-card rounded-xl border border-gray-800 overflow-hidden">
-      <img src="${g}" class="w-full aspect-square object-cover">
-      <div class="p-3">
-        <p class="text-xs text-gray-400 uppercase">${p.kategori}</p>
-        <h3 class="font-medium mt-1">${p.nama}</h3>
-        <p class="font-bold text-primary mt-1">Rp ${p.harga.toLocaleString('id-ID')}</p>
-        <button onclick="bukaDetail(${p.id})" class="w-full mt-2 text-xs border border-primary text-primary py-1.5 rounded">Lihat Detail</button>
-        <button onclick="tambahKeranjang(${p.id})" class="w-full mt-1 text-xs font-bold bg-primary py-2 rounded">+ Keranjang</button>
-      </div>
-    </div>`;
-  }).join('');
-}
+  function bukaPesan(){
+    jumlahPesan = 1; ukuranPesan = ''; warnaPesan = '';
+    document.getElementById('pJumlah').innerText = jumlahPesan;
+    const u = dataProdukAktif.ukuran?dataProdukAktif.ukuran.split(','):[];
+    const w = dataProdukAktif.varianWarna?dataProdukAktif.varianWarna.split(','):[];
+    document.getElementById('wrapUkuran').style.display = u.length?'block':'none';
+    document.getElementById('pilihUkuran').innerHTML = u.map(x=>`<button onclick="pilihUkuran('${x}')" class="px-3 py-1 border border-gray-700 rounded text-xs">${x}</button>`).join('');
+    document.getElementById('wrapWarna').style.display = w.length?'block':'none';
+    document.getElementById('pilihWarna').innerHTML = w.map(x=>`<button onclick="pilihWarna('${x}')" class="px-3 py-1 border border-gray-700 rounded text-xs">${x}</button>`).join('');
+    document.getElementById('modalPesan').classList.remove('hidden');
+  }
+  function tutupPesan(){ document.getElementById('modalPesan').classList.add('hidden'); }
+  function ubahJumlah(n){
+    const stok = dataProdukAktif.stok;
+    jumlahPesan = Math.max(1, Math.min(stok, jumlahPesan+n));
+    document.getElementById('pJumlah').innerText = jumlahPesan;
+  }
+  function pilihUkuran(x){ ukuranPesan=x; document.querySelectorAll('#pilihUkuran button').forEach(b=>b.classList.toggle('border-primary',b.innerText===x)); }
+  function pilihWarna(x){ warnaPesan=x; document.querySelectorAll('#pilihWarna button').forEach(b=>b.classList.toggle('border-primary',b.innerText===x)); }
 
-function bukaPilihan() {
-  jumlah = 1; pilihU = ''; pilihW = '';
-  document.getElementById('nilaiJumlah').innerText = jumlah;
-  const u = produkAktif.ukuran ? produkAktif.ukuran.split(',') : [];
-  const w = produkAktif.varianWarna ? produkAktif.varianWarna.split(',') : [];
-  document.getElementById('kotakUkuran').classList.toggle('hidden', !u.length);
-  document.getElementById('pilihUkuran').innerHTML = u.map(x=>`<button onclick="pilihUkuran('${x}')" class="px-3 py-1 border border-gray-700 rounded text-xs">${x}</button>`).join('');
-  document.getElementById('kotakWarna').classList.toggle('hidden', !w.length);
-  document.getElementById('pilihWarna').innerHTML = w.map(x=>`<button onclick="pilihWarna('${x}')" class="px-3 py-1 border border-gray-700 rounded text-xs">${x}</button>`).join('');
-  document.getElementById('modalPilihan').classList.remove('hidden');
-}
-function tutupPilihan() { document.getElementById('modalPilihan').classList.add('hidden'); }
-function ubahJumlah(n) { jumlah = Math.max(1, jumlah+n); document.getElementById('nilaiJumlah').innerText = jumlah; }
-function pilihUkuran(x) { pilihU = x; document.querySelectorAll('#pilihUkuran button').forEach(b=>b.classList.toggle('border-primary', b.innerText===x)); }
-function pilihWarna(x) { pilihW = x; document.querySelectorAll('#pilihWarna button').forEach(b=>b.classList.toggle('border-primary', b.innerText===x)); }
+  function tambahDariPesan(){
+    let keranjang = ambilData(KEY_KERANJANG);
+    const idx = keranjang.findIndex(i=>i.id===idProdukAktif && i.ukuran===ukuranPesan && i.warna===warnaPesan);
+    if(idx>=0) keranjang[idx].qty+=jumlahPesan;
+    else keranjang.push({id:idProdukAktif,qty:jumlahPesan,ukuran:ukuranPesan,warna:warnaPesan});
+    simpanData(KEY_KERANJANG,keranjang); perbaruiCounter(); tutupPesan(); tampilkanToast('Ditambahkan ke keranjang');
+  }
+  function langsungBeli(){ tambahDariPesan(); bukaKeranjang(); }
 
-function masukKeranjang() {
-  let k = ambilData(DB_KERANJANG);
-  const idx = k.findIndex(i=>i.id===produkAktif.id && i.ukuran===pilihU && i.warna===pilihW);
-  idx>=0 ? k[idx].qty+=jumlah : k.push({id:produkAktif.id, qty:jumlah, ukuran:pilihU, warna:pilihW});
-  simpanData(DB_KERANJANG, k);
-  perbaruiJumlah(); tutupPilihan();
-}
-function beliLangsung() { masukKeranjang(); bukaKeranjang(); }
+  function bukaPesanCheckout(){ tutupKeranjang(); bukaPesan(); }
 
-function tambahKeranjang(id) {
-  let k = ambilData(DB_KERANJANG);
-  const ada = k.find(i=>i.id===id);
-  ada ? ada.qty++ : k.push({id, qty:1, ukuran:'', warna:''});
-  simpanData(DB_KERANJANG, k); perbaruiJumlah();
-}
-function perbaruiJumlah() {
-  const total = ambilData(DB_KERANJANG).reduce((s,i)=>s+i.qty,0);
-  document.getElementById('jumlahKeranjang').innerText = total;
-}
+  function renderKategori(){
+    const p = ambilData(KEY_PRODUK);
+    const u = ['Semua',...new Set(p.map(x=>x.kategori))];
+    const a = window._kat||'Semua';
+    document.getElementById('kategoriChips').innerHTML = u.map(k=>`<button onclick="pilihKat('${k}')" class="whitespace-nowrap text-xs px-3 py-1.5 rounded-full border ${k===a?'bg-primary border-primary':'border-gray-700 text-gray-400'}">${k}</button>`).join('');
+  }
+  function pilihKat(k){ window._kat=k; renderKategori(); renderProduk(); }
+  function renderProduk(){
+    const semua = ambilData(KEY_PRODUK);
+    const cari = document.getElementById('cariInput').value.toLowerCase();
+    const kat = window._kat||'Semua';
+    const hasil = semua.filter(p=>(kat==='Semua'||p.kategori===kat) && p.nama.toLowerCase().includes(cari));
+    document.getElementById('kosongMsg').classList.toggle('hidden',hasil.length);
+    document.getElementById('gridProduk').innerHTML = hasil.map(p=>{
+      const habis = p.stok<=0;
+      const g = p.gambar||placeholderImg(p.nama,p.warna||'#333');
+      return `<div class="bg-card rounded-xl border border-gray-800 overflow-hidden flex flex-col">
+        <img src="${g}" class="w-full aspect-square object-cover">
+        <div class="p-2.5 flex flex-col gap-1 flex-1">
+          <span class="text-[10px] text-gray-500 uppercase">${p.kategori}</span>
+          <h3 class="text-sm font-medium">${p.nama}</h3>
+          <span class="font-num font-700 text-primary">Rp ${p.harga.toLocaleString('id-ID')}</span>
+          <button onclick="bukaDetail(${p.id})" class="mt-1 w-full text-xs border border-primary text-primary py-1.5 rounded">Lihat Detail</button>
+          <button onclick="tambahKeKeranjang(${p.id})" ${habis?'disabled':''} class="mt-1 w-full text-xs font-bold py-2 rounded ${habis?'bg-gray-800 text-gray-500':'bg-primary'}">${habis?'Habis':'+ Keranjang'}</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
 
-function bukaKeranjang() {
-  let k = ambilData(DB_KERANJANG);
-  let p = ambilData(DB_PRODUK);
-  let totalBayar = 0;
-  document.getElementById('isiKeranjang').innerHTML = k.map(i=>{
-    const brg = p.find(x=>x.id===i.id);
-    if(!brg) return '';
-    totalBayar += brg.harga*i.qty;
-    return `<div class="flex items-center gap-3 py-2 border-b border-gray-800">
-      <img src="${brg.gambar||buatGambarHuruf(brg.nama,brg.warna)}" class="w-12 h-12 rounded">
-      <div class="flex-1"><p class="text-sm">${brg.nama}</p><p class="text-xs text-gray-400">${i.ukuran} ${i.warna} x${i.qty}</p></div>
-    </div>`;
-  }).join('');
-  document.getElementById('totalHarga').innerText = `Rp ${totalBayar.toLocaleString('id-ID')}`;
-  document.getElementById('modalKeranjang').classList.remove('hidden');
-}
-function tutupKeranjang() { document.getElementById('modalKeranjang').classList.add('hidden'); }
+  function tambahKeKeranjang(id){
+    const p = ambilData(KEY_PRODUK).find(i=>i.id===id);
+    if(!p||p.stok<=0) return tampilkanToast('Stok habis');
+    let k = ambilData(KEY_KERANJANG);
+    const x = k.find(i=>i.id===id);
+    x?x.qty++:k.push({id,qty:1,ukuran:'',warna:''});
+    simpanData(KEY_KERANJANG,k); perbaruiCounter(); tampilkanToast('Ditambahkan');
+  }
+  function perbaruiCounter(){
+    const total = ambilData(KEY_KERANJANG).reduce((s,i)=>s+i.qty,0);
+    document.getElementById('cartCount').innerText = total;
+  }
+  function bukaKeranjang(){ renderKeranjang(); document.getElementById('modalKeranjang').classList.remove('hidden'); }
+  function tutupKeranjang(){ document.getElementById('modalKeranjang').classList.add('hidden'); }
+  function renderKeranjang(){
+    const produk = ambilData(KEY_PRODUK), k = ambilData(KEY_KERANJANG);
+    const isi = document.getElementById('isiKeranjang');
+    if(!k.length){ isi.innerHTML='<p class="text-center text-gray-500 py-10">Kosong</p>'; return; }
+    let total=0;
+    isi.innerHTML = k.map(i=>{
+      const p = produk.find(x=>x.id===i.id); if(!p) return '';
+      total += p.harga*i.qty;
+      return `<div class="flex items-center gap-3 border-b border-gray-800 pb-3">
+        <img src="${p.gambar||placeholderImg(p.nama,p.warna||'#333')}" class="w-14 h-14 rounded">
+        <div class="flex-1"><p class="text-sm">${p.nama}</p><p class="text-xs text-gray-400">${i.ukuran?i.ukuran+' ':''}${i.warna?i.warna:''} x${i.qty}</p></div>
+        <div class="flex gap-2"><button onclick="ubahQty(${i.id},-1,'${i.ukuran}','${i.warna}')" class="w-7 h-7 rounded border">-</button><span>${i.qty}</span><button onclick="ubahQty(${i.id},1,'${i.ukuran}','${i.warna}')" class="w-7 h-7 rounded border">+</button></div>
+      </div>`;
+    }).join('');
+    document.getElementById('totalKeranjang').innerText = `Rp ${total.toLocaleString('id-ID')}`;
+  }
+  function ubahQty(id,d,uk,wr){
+    let k = ambilData(KEY_KERANJANG);
+    const idx = k.findIndex(i=>i.id===id && i.ukuran===uk && i.warna===wr);
+    if(idx<0) return;
+    k[idx].qty+=d;
+    if(k[idx].qty<=0) k.splice(idx,1);
+    simpanData(KEY_KERANJANG,k); renderKeranjang(); perbaruiCounter();
+  }
+  function checkout(){
+    let k = ambilData(KEY_KERANJANG), p = ambilData(KEY_PRODUK);
+    k.forEach(i=>{ const brg = p.find(x=>x.id===i.id); if(brg) brg.stok-=i.qty; });
+    simpanData(KEY_PRODUK,p); simpanData(KEY_KERANJANG,[]);
+    tutupKeranjang(); perbaruiCounter(); renderProduk(); tampilkanToast('Berhasil!');
+  }
+  function tampilkanToast(m){
+    const t = document.createElement('div'); t.className='toast-in bg-white text-dark text-sm px-4 py-2 rounded mb-2'; t.innerText=m; document.getElementById('toastBox').appendChild(t); setTimeout(()=>t.remove(),2000);
+  }
 
-tampilkanProduk();
-perbaruiJumlah();
+  seedData(); renderKategori(); renderProduk();
 </script>
 </body>
 </html>
