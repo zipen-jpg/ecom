@@ -100,7 +100,7 @@
   function ambilData(key) { return JSON.parse(localStorage.getItem(key)) || []; }
   function simpanData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
-  // --- placeholder gambar offline (tanpa jaringan) ---
+  // --- GAMBAR OTOMATIS JIKA TIDAK ADA LINK ---
   function placeholderImg(nama, warna) {
     const huruf = (nama || '?').trim().charAt(0).toUpperCase();
     const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>
@@ -110,20 +110,20 @@
     return 'data:image/svg+xml;base64,' + btoa(svg);
   }
 
-  // --- seed data awal jika localStorage kosong ---
+  // --- DATA AWAL ---
   function seedData() {
     if (localStorage.getItem(KEY_PRODUK)) return;
     const contoh = [
-      { nama:'Kaos Polos Combed', harga:75000, kategori:'Fashion', stok:20, warna:'#ff2b55' },
-      { nama:'Sepatu Sneakers Urban', harga:249000, kategori:'Fashion', stok:8, warna:'#00b37e' },
-      { nama:'Earphone Bluetooth', harga:129000, kategori:'Elektronik', stok:15, warna:'#2b6fff' },
-      { nama:'Power Bank 10000mAh', harga:159000, kategori:'Elektronik', stok:3, warna:'#ff7a2b' },
-      { nama:'Tote Bag Canvas', harga:45000, kategori:'Aksesoris', stok:0, warna:'#9b5cff' },
-      { nama:'Topi Baseball', harga:59000, kategori:'Aksesoris', stok:12, warna:'#ffb400' },
-      { nama:'Kopi Susu Kemasan', harga:18000, kategori:'Makanan', stok:30, warna:'#7a4b2b' },
-      { nama:'Keripik Pedas 250g', harga:22000, kategori:'Makanan', stok:5, warna:'#e63946' }
+      { nama:'Kaos Polos Combed', harga:75000, kategori:'Fashion', stok:20, warna:'#ff2b55', gambar:'' },
+      { nama:'Sepatu Sneakers Urban', harga:249000, kategori:'Fashion', stok:8, warna:'#00b37e', gambar:'' },
+      { nama:'Earphone Bluetooth', harga:129000, kategori:'Elektronik', stok:15, warna:'#2b6fff', gambar:'' },
+      { nama:'Power Bank 10000mAh', harga:159000, kategori:'Elektronik', stok:3, warna:'#ff7a2b', gambar:'' },
+      { nama:'Tote Bag Kanvas', harga:45000, kategori:'Aksesoris', stok:0, warna:'#9b5cff', gambar:'' },
+      { nama:'Topi Baseball', harga:59000, kategori:'Aksesoris', stok:12, warna:'#ffb400', gambar:'' },
+      { nama:'Kopi Susu Sachet', harga:18000, kategori:'Makanan', stok:30, warna:'#7a4b2b', gambar:'' },
+      { nama:'Keripik Pedas 250g', harga:22000, kategori:'Makanan', stok:5, warna:'#e63946', gambar:'' }
     ];
-    const produk = contoh.map(p => ({ id: Date.now() + Math.floor(Math.random()*10000), ...p, gambar:'' }));
+    const produk = contoh.map(p => ({ id: Date.now() + Math.floor(Math.random()*10000), ...p }));
     simpanData(KEY_PRODUK, produk);
   }
 
@@ -277,7 +277,6 @@
     let total = 0;
     const itemTransaksi = [];
 
-    // validasi ulang stok sebelum checkout
     for (const item of keranjang) {
       const p = produk.find(x => x.id === item.id);
       if (!p || p.stok < item.qty) {
@@ -317,7 +316,6 @@
     setTimeout(() => el.remove(), 2200);
   }
 
-  // sinkron otomatis jika data diubah dari tab admin lain
   window.addEventListener('storage', (e) => {
     if (e.key === KEY_PRODUK) { renderProduk(); renderKategori(); }
   });
