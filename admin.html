@@ -3,118 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Toko Online - Admin</title>
+    <title>Admin - Kelola Toko</title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; font-family:system-ui; }
         body { background:#0d0d0d; color:#fff; padding:16px; }
         .hidden { display:none !important; }
-        .login {
+        .login-container {
             max-width:360px; margin:80px auto; padding:24px; background:#181818;
             border-radius:12px; border:1px solid #222; text-align:center;
         }
-        .login input {
-            width:100%; padding:10px; margin-bottom:10px; background:#222;
+        .login-container h2 { margin-bottom:20px; font-size:20px; }
+        .login-input {
+            width:100%; padding:10px 14px; margin-bottom:12px; background:#222;
             border:1px solid #333; border-radius:6px; color:#fff; outline:none;
         }
-        .btn {
+        .btn-main {
             width:100%; padding:10px; background:#ff2b55; color:#fff; border:none;
-            border-radius:6px; font-weight:bold; cursor:pointer;
+            border-radius:6px; font-weight:bold; cursor:pointer; margin-top:10px;
+        }
+        .login-hint {
+            font-size:11px; color:#888; margin-top:16px; text-align:left; background:#222; padding:8px; border-radius:6px;
         }
         .form-produk {
-            background:#181818; padding:16px; border-radius:8px; border:1px solid #222;
-            margin-bottom:16px;
+            background:#181818; padding:16px; border-radius:8px; border:1px solid #222; margin-bottom:16px;
         }
         .form-produk input {
             width:100%; padding:8px; margin-bottom:8px; background:#222;
             border:1px solid #333; border-radius:4px; color:#fff; outline:none;
         }
-        table { width:100%; border-collapse:collapse; font-size:12px; }
+        table { width:100%; border-collapse:collapse; font-size:12px; margin-top:10px; }
         th, td { border:1px solid #2a2a2a; padding:8px; text-align:left; }
         .btn-ubah { background:#00b37e; color:#fff; border:none; padding:4px 8px; border-radius:4px; margin-right:4px; cursor:pointer; }
         .btn-hapus { background:#ff2b55; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; }
-        .link-kembali {
-            display:block; text-align:center; margin-top:12px; color:#ff2b55; text-decoration:none;
-        }
+        .link-kembali { display:block; text-align:center; margin-top:12px; color:#ff2b55; text-decoration:none; }
     </style>
 </head>
 <body>
 
-<div id="hal-login" class="login">
-    <h2>Login Admin</h2>
-    <input type="text" id="user" placeholder="Username">
-    <input type="password" id="pass" placeholder="Password">
-    <button class="btn" onclick="masuk()">Masuk</button>
-    <p style="font-size:11px; color:#888; margin-top:8px;">user: admin | pass: admin123</p>
+<div id="hal-login" class="login-container">
+    <h2>🔑 Masuk Admin</h2>
+    <input type="text" id="user" class="login-input" placeholder="Username">
+    <input type="password" id="pass" class="login-input" placeholder="Password">
+    <button class="btn-main" onclick="masuk()">Masuk</button>
+    <div class="login-hint">
+        <strong>Akses:</strong><br>
+        Username: <b>admin</b><br>
+        Password: <b>admin123</b>
+    </div>
 </div>
 
 <div id="hal-admin" class="hidden">
     <h2 style="margin-bottom:16px;">Kelola Produk</h2>
     <div class="form-produk">
         <input type="text" id="nama" placeholder="Nama Produk">
-        <input type="number" id="harga" placeholder="Harga">
+        <input type="number" id="harga" placeholder="Harga (Rp)">
         <input type="text" id="ukuran" placeholder="Ukuran: S,M,L,XL">
         <input type="text" id="warna" placeholder="Warna: Merah,Putih,Hitam">
-        <input type="text" id="gambar" placeholder="Link Gambar (opsional)">
-        <button class="btn" onclick="simpan()">Simpan Produk</button>
+        <input type="text" id="deskripsi" placeholder="Deskripsi Produk">
+        <input type="text" id="gambar" placeholder="Link Gambar (Opsional)">
+        <button class="btn-main" onclick="simpanProduk()">Simpan Produk</button>
     </div>
     <table>
-        <thead><tr><th>Nama</th><th>Harga</th><th>Aksi</th></tr></thead>
-        <tbody id="tabel"></tbody>
+        <thead><tr><th>Nama Produk</th><th>Harga</th><th>Aksi</th></tr></thead>
+        <tbody id="tabel-data"></tbody>
     </table>
     <a href="index.html" class="link-kembali">← Kembali ke Toko</a>
 </div>
 
 <script>
-const DB = 'db_toko';
-let idEdit = null;
+const DB = 'db_toko_produk';
+let idUbah = null;
 
 function ambil(k) { return JSON.parse(localStorage.getItem(k)) || []; }
-function simpan(k,d) { localStorage.setItem(k, JSON.stringify(d)); }
+function simpan(k, d) { localStorage.setItem(k, JSON.stringify(d)); }
 
 function masuk() {
-    if(user.value==='admin' && pass.value==='admin123') {
+    if(user.value === 'admin' && pass.value === 'admin123') {
         hal-login.classList.add('hidden');
         hal-admin.classList.remove('hidden');
-        tampilData();
-    } else alert('Salah!');
+        tampilSemuaProduk();
+    } else alert('Username atau Password salah!');
 }
 
-function tampilData() {
+function tampilSemuaProduk() {
     const data = ambil(DB);
-    tabel.innerHTML = data.map(x=>`<tr>
-        <td>${x.nama}</td>
-        <td>Rp ${x.harga.toLocaleString('id-ID')}</td>
+    tabel-data.innerHTML = data.map(p => `<tr>
+        <td>${p.nama}</td>
+        <td>Rp ${p.harga.toLocaleString('id-ID')}</td>
         <td>
-            <button class="btn-ubah" onclick="ubah(${x.id})">Ubah</button>
-            <button class="btn-hapus" onclick="hapus(${x.id})">Hapus</button>
+            <button class="btn-ubah" onclick="editData(${p.id})">Ubah</button>
+            <button class="btn-hapus" onclick="hapusData(${p.id})">Hapus</button>
         </td>
     </tr>`).join('');
 }
 
-function simpan() {
-    const data = ambil(DB);
-    if(idEdit) {
-        const x = data.find(i=>i.id===idEdit);
-        x.nama = nama.value; x.harga = +harga.value; x.ukuran = ukuran.value;
-        x.warna = warna.value; x.gambar = gambar.value; idEdit=null;
+function simpanProduk() {
+    const semua = ambil(DB);
+    if(idUbah) {
+        const pilih = semua.find(i => i.id === idUbah);
+        pilih.nama = nama.value;
+        pilih.harga = +harga.value;
+        pilih.ukuran = ukuran.value;
+        pilih.warna = warna.value;
+        pilih.deskripsi = deskripsi.value;
+        pilih.gambar = gambar.value;
+        idUbah = null;
     } else {
-        data.push({
-            id:Date.now(), nama:nama.value, harga:+harga.value, ukuran:ukuran.value,
-            warna:warna.value, gambar:gambar.value, warnaLatar:'#'+Math.random().toString(16).slice(2,8), ket:''
+        semua.push({
+            id: Date.now(),
+            nama: nama.value,
+            harga: +harga.value,
+            ukuran: ukuran.value,
+            warna: warna.value,
+            deskripsi: deskripsi.value,
+            gambar: gambar.value,
+            warnaLatar: '#' + Math.random().toString(16).slice(2,8)
         });
     }
-    simpan(DB, data); tampilData();
-    document.querySelectorAll('input').forEach(i=>i.value='');
+    simpan(DB, semua);
+    tampilSemuaProduk();
+    document.querySelectorAll('input').forEach(i => i.value = '');
 }
 
-function ubah(id) {
-    const x = ambil(DB).find(i=>i.id===id); idEdit=id;
-    nama.value=x.nama; harga.value=x.harga; ukuran.value=x.ukuran||'';
-    warna.value=x.warna||''; gambar.value=x.gambar||'';
+function editData(id) {
+    const pilih = ambil(DB).find(i => i.id === id);
+    idUbah = id;
+    nama.value = pilih.nama;
+    harga.value = pilih.harga;
+    ukuran.value = pilih.ukuran || '';
+    warna.value = pilih.warna || '';
+    deskripsi.value = pilih.deskripsi || '';
+    gambar.value = pilih.gambar || '';
 }
 
-function hapus(id) {
-    if(confirm('Yakin hapus?')) simpan(DB, ambil(DB).filter(i=>i.id!==id)); tampilData();
+function hapusData(id) {
+    if(confirm('Yakin ingin menghapus produk ini?')) {
+        simpan(DB, ambil(DB).filter(i => i.id !== id));
+        tampilSemuaProduk();
+    }
 }
 </script>
 </body>
