@@ -78,7 +78,7 @@
     </nav>
     <div class="p-3 border-t border-gray-100 space-y-2">
       <a href="index.html" class="w-full flex items-center justify-center gap-2 text-sm border border-gray-200 rounded-lg px-3 py-2.5">← Kembali ke Toko</a>
-      <button onclick="logout()" class="w-full flex items-center justify-center gap-2 text-sm border border-red-200 rounded-lg px-3 py-2.5 text-red-500">Logout</button>
+      <button onclick="logout()" class="w-full flex items-center justify-center gap-2 text-sm border border-red-200 rounded-lg px-3 py-2.5 text-red-600">Logout</button>
     </div>
   </aside>
 
@@ -114,7 +114,7 @@
             <input type="text" id="kategori" placeholder="Kategori" class="bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm">
             <input type="number" id="stok" placeholder="Stok" class="bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm">
           </div>
-          <input type="text" id="gambar" placeholder="URL Gambar (opsional)" class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mb-3">
+          <input type="text" id="gambar" placeholder="URL Gambar (Opsional)" class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mb-3">
           <div class="flex gap-2">
             <button onclick="simpanProduk()" id="btnSimpan" class="flex-1 bg-primary text-white py-2.5 rounded-lg font-display font-700 text-sm">+ Tambah Produk</button>
             <button onclick="batalEdit()" id="btnBatal" class="hidden px-4 py-2.5 rounded-lg border border-gray-200 text-sm">Batal</button>
@@ -195,16 +195,6 @@
   }
   function simpanData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
-  const CONTOH_PRODUK = [
-    { nama:'Kaos Polos Combed', harga:75000, kategori:'Fashion', stok:20 },
-    { nama:'Sepatu Sneakers', harga:249000, kategori:'Fashion', stok:8 },
-    { nama:'Earphone Bluetooth', harga:129000, kategori:'Elektronik', stok:15 }
-  ];
-
-  function seedData() {
-    if (!localStorage.getItem(KEY_PRODUK)) simpanData(KEY_PRODUK, CONTOH_PRODUK.map(p=>({id:Date.now()+Math.random(),...p,gambar:''})));
-  }
-
   function login(e) {
     e.preventDefault();
     const u = document.getElementById('loginUser').value.trim();
@@ -212,7 +202,7 @@
     if(u==='admin' && p==='admin123'){
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('appScreen').classList.remove('hidden');
-      seedData(); muatSemua();
+      muatSemua();
     }else{
       document.getElementById('loginError').classList.remove('hidden');
     }
@@ -244,23 +234,54 @@
     document.getElementById('jmlProduk').innerText = produk.length;
     document.getElementById('jmlTransaksi').innerText = transaksi.length;
     document.getElementById('totalPendapatan').innerText = 'Rp '+transaksi.reduce((s,t)=>s+t.total,0).toLocaleString('id-ID');
+    
+    // Hitung pendapatan hari ini
+    const hariIni = new Date().toISOString().split('T')[0];
+    const totalHariIni = transaksi.filter(t=>new Date(t.tanggal).toISOString().split('T')[0]===hariIni).reduce((s,t)=>s+t.total,0);
+    document.getElementById('pendapatanHariIni').innerText = 'Rp '+totalHariIni.toLocaleString('id-ID');
+
+    // Produk terlaris
+    const jual = {};
+    transaksi.forEach(t=>t.items.forEach(i=>{jual[i.nama]=(jual[i.nama]||0)+i.qty;}));
+    const urut = Object.entries(jual).sort((a,b)=>b[1]-a[1]);
+    document.getElementById('produkTerlaris').innerText = urut.length ? urut[0][0] : '-';
+
+    // Riwayat transaksi
+    document.getElementById('riwayatTransaksi').innerHTML = transaksi.slice(-5).reverse().map(t=>`
+      <div class="flex justify-between text-xs p-2 bg-gray-50 rounded">
+        <span>${new Date(t.tanggal).toLocaleDateString('id-ID')}</span>
+        <span class="font-num text-hijau">Rp ${t.total.toLocaleString('id-ID')}</span>
+      </div>`).join('') || '<p class="text-gray-400 text-xs">Belum ada transaksi</p>';
+
     renderTabelProduk(produk);
+  }
+
+  // --- TAMBAH/FUNGSI GAMBAR YANG DIPERBAIKI ---
+  function placeholderImgAdmin(nama, warna='#e5e7eb') {
+    const huruf = (nama || '?').trim().charAt(0).toUpperCase();
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><rect width='40' height='40' fill='${warna}'/><text x='50%' y='55%' font-size='18' font-weight='bold' fill='white' text-anchor='middle'>${huruf}</text></svg>`;
+    return 'data:image/svg+xml;base64,' + btoa(svg);
   }
 
   function renderTabelProduk(list){
     const cari = document.getElementById('cariAdmin').value.toLowerCase();
     const hasil = list.filter(p=>p.nama.toLowerCase().includes(cari));
-    document.getElementById('tabelProduk').innerHTML = hasil.map(p=>`
+    document.getElementById('tabelProduk').innerHTML = hasil.map(p=>{
+      const tampilGambar = p.gambar || placeholderImgAdmin(p.nama, p.warna);
+      return `
       <tr class="border-b border-gray-100">
-        <td class="py-2">${p.nama}</td>
+        <td class="py-2">
+          <img src="${tampilGambar}" onerror="this.src='${placeholderImgAdmin(p.nama)}'" class="w-8 h-8 rounded object-cover inline-block mr-2">
+          ${p.nama}
+        </td>
         <td>Rp ${p.harga.toLocaleString()}</td>
         <td>${p.stok}</td>
         <td class="flex gap-1">
           <button onclick="editProduk(${p.id})" class="bg-hijau text-white px-2 rounded text-xs">Ubah</button>
           <button onclick="hapusProduk(${p.id})" class="bg-red-500 text-white px-2 rounded text-xs">Hapus</button>
         </td>
-      </tr>
-    `).join('');
+      </tr>`;
+    }).join('');
   }
 
   let idEdit = null;
@@ -269,17 +290,20 @@
     const harga = parseInt(document.getElementById('harga').value);
     const kategori = document.getElementById('kategori').value.trim();
     const stok = parseInt(document.getElementById('stok').value);
+    const gambar = document.getElementById('gambar').value.trim();
+
     if(!nama || !harga || !kategori || isNaN(stok)) return alert('Lengkapi data!');
 
     const produk = ambilData(KEY_PRODUK);
     if(idEdit){
       const idx = produk.findIndex(i=>i.id===idEdit);
-      produk[idx] = {...produk[idx], nama, harga, kategori, stok};
+      produk[idx] = {...produk[idx], nama, harga, kategori, stok, gambar};
       idEdit = null;
       document.getElementById('btnSimpan').innerText = '+ Tambah Produk';
       document.getElementById('btnBatal').classList.add('hidden');
     }else{
-      produk.push({id:Date.now(), nama, harga, kategori, stok, gambar:''});
+      const warna = '#' + Math.floor(Math.random()*16777215).toString(16);
+      produk.push({id:Date.now(), nama, harga, kategori, stok, gambar, warna});
     }
     simpanData(KEY_PRODUK, produk);
     muatSemua();
@@ -293,6 +317,7 @@
     document.getElementById('harga').value = p.harga;
     document.getElementById('kategori').value = p.kategori;
     document.getElementById('stok').value = p.stok;
+    document.getElementById('gambar').value = p.gambar || '';
     document.getElementById('btnSimpan').innerText = '✓ Perbarui Produk';
     document.getElementById('btnBatal').classList.remove('hidden');
   }
@@ -310,7 +335,7 @@
     muatSemua();
   }
 
-  // FUNGSI LAPORAN
+  // --- FUNGSI LAPORAN ---
   function renderLaporan(){
     const transaksi = ambilData(KEY_TRANSAKSI);
     const dari = document.getElementById('filterDari').value;
@@ -338,13 +363,12 @@
     renderLaporan();
   }
 
-  // FUNGSI GRAFIK
+  // --- FUNGSI GRAFIK ---
   let grafikSudah = false;
   function renderGrafik(){
     if(grafikSudah) return;
     const transaksi = ambilData(KEY_TRANSAKSI);
 
-    // Grafik Batang
     const hari = {};
     transaksi.forEach(t=>{
       const tgl = new Date(t.tanggal).toLocaleDateString('id-ID');
@@ -357,7 +381,6 @@
       data:{labels:labelHari,datasets:[{label:'Pendapatan',data:nilaiHari,backgroundColor:'#2563EB'}]}
     });
 
-    // Grafik Lingkaran
     const jml = {};
     transaksi.forEach(t=>t.items.forEach(i=>{jml[i.nama]=(jml[i.nama]||0)+i.qty;}));
     const namaBrg = Object.keys(jml);
@@ -369,7 +392,9 @@
     grafikSudah = true;
   }
 
-  seedData();
+  window.addEventListener('storage', (e) => {
+    if (e.key === KEY_PRODUK || e.key === KEY_TRANSAKSI) { muatSemua(); renderLaporan(); grafikSudah=false; }
+  });
 </script>
 </body>
 </html>
