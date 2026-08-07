@@ -1,67 +1,121 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Panel Admin</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config={theme:{extend:{colors:{primary:'#2563EB',hijau:'#16a34a'},fontFamily:{display:['Sora'],body:['Plus Jakarta Sans']}}}}
-</script>
-<style>body{font-family:'Plus Jakarta Sans'} .nav-item.active{background:#eff6ff;color:#2563EB;font-weight:600}</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toko Online - Admin</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; font-family:system-ui; }
+        body { background:#0d0d0d; color:#fff; padding:16px; }
+        .hidden { display:none !important; }
+        .login {
+            max-width:360px; margin:80px auto; padding:24px; background:#181818;
+            border-radius:12px; border:1px solid #222; text-align:center;
+        }
+        .login input {
+            width:100%; padding:10px; margin-bottom:10px; background:#222;
+            border:1px solid #333; border-radius:6px; color:#fff; outline:none;
+        }
+        .btn {
+            width:100%; padding:10px; background:#ff2b55; color:#fff; border:none;
+            border-radius:6px; font-weight:bold; cursor:pointer;
+        }
+        .form-produk {
+            background:#181818; padding:16px; border-radius:8px; border:1px solid #222;
+            margin-bottom:16px;
+        }
+        .form-produk input {
+            width:100%; padding:8px; margin-bottom:8px; background:#222;
+            border:1px solid #333; border-radius:4px; color:#fff; outline:none;
+        }
+        table { width:100%; border-collapse:collapse; font-size:12px; }
+        th, td { border:1px solid #2a2a2a; padding:8px; text-align:left; }
+        .btn-ubah { background:#00b37e; color:#fff; border:none; padding:4px 8px; border-radius:4px; margin-right:4px; cursor:pointer; }
+        .btn-hapus { background:#ff2b55; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; }
+        .link-kembali {
+            display:block; text-align:center; margin-top:12px; color:#ff2b55; text-decoration:none;
+        }
+    </style>
 </head>
-<body class="bg-gray-50">
-<div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
-  <form onsubmit="login(event)" class="bg-white w-full max-w-sm rounded-xl border p-6">
-    <h2 class="text-center font-bold mb-4">Login Admin</h2>
-    <input type="text" id="user" placeholder="Username" class="w-full border p-2 mb-2 rounded"><input type="password" id="pass" placeholder="Password" class="w-full border p-2 mb-3 rounded">
-    <button class="w-full bg-primary text-white py-2 rounded">Masuk</button>
-    <p class="text-center text-xs mt-2">admin / admin123</p>
-  </form>
+<body>
+
+<div id="hal-login" class="login">
+    <h2>Login Admin</h2>
+    <input type="text" id="user" placeholder="Username">
+    <input type="password" id="pass" placeholder="Password">
+    <button class="btn" onclick="masuk()">Masuk</button>
+    <p style="font-size:11px; color:#888; margin-top:8px;">user: admin | pass: admin123</p>
 </div>
-<div id="appScreen" class="hidden flex min-h-screen">
-  <aside class="w-64 bg-white border-r p-3 hidden md:block">
-    <h3 class="font-bold mb-4">⚡ Admin</h3>
-    <button onclick="v('dashboard')" class="nav-item active w-full text-left p-2 rounded mb-1">Dashboard</button>
-    <button onclick="v('produk')" class="nav-item w-full text-left p-2 rounded mb-1">Kelola Produk</button>
-    <a href="index.html" class="block mt-4 text-center border p-2 rounded">Kembali Toko</a>
-  </aside>
-  <div class="flex-1 p-4">
-    <div id="vdash" class="view">
-      <h1 class="font-bold mb-3">Dashboard</h1>
-      <p>Total Produk: <span id="jmlP">0</span></p>
+
+<div id="hal-admin" class="hidden">
+    <h2 style="margin-bottom:16px;">Kelola Produk</h2>
+    <div class="form-produk">
+        <input type="text" id="nama" placeholder="Nama Produk">
+        <input type="number" id="harga" placeholder="Harga">
+        <input type="text" id="ukuran" placeholder="Ukuran: S,M,L,XL">
+        <input type="text" id="warna" placeholder="Warna: Merah,Putih,Hitam">
+        <input type="text" id="gambar" placeholder="Link Gambar (opsional)">
+        <button class="btn" onclick="simpan()">Simpan Produk</button>
     </div>
-    <div id="vproduk" class="view hidden">
-      <h1 class="font-bold mb-3">Kelola Produk</h1>
-      <div class="grid grid-cols-2 gap-2 mb-3">
-        <input type="text" id="nm" placeholder="Nama" class="border p-2 rounded">
-        <input type="number" id="hr" placeholder="Harga" class="border p-2 rounded">
-        <input type="text" id="kt" placeholder="Kategori" class="border p-2 rounded">
-        <input type="number" id="st" placeholder="Stok" class="border p-2 rounded">
-        <input type="text" id="uk" placeholder="Ukuran (pisah koma: S,M,L)" class="border p-2 rounded">
-        <input type="text" id="wr" placeholder="Warna (pisah koma: Merah,Putih)" class="border p-2 rounded">
-      </div>
-      <input type="text" id="gb" placeholder="Link Gambar (Opsional)" class="w-full border p-2 rounded mb-3">
-      <button onclick="simpan()" class="bg-primary text-white py-2 rounded">Simpan Produk</button>
-      <div class="mt-4"><table class="w-full text-xs"><thead><tr class="text-left"><th>Nama</th><th>Harga</th><th>Stok</th><th>Aksi</th></tr></thead><tbody id="tbl"></tbody></table></div>
-    </div>
-  </div>
+    <table>
+        <thead><tr><th>Nama</th><th>Harga</th><th>Aksi</th></tr></thead>
+        <tbody id="tabel"></tbody>
+    </table>
+    <a href="index.html" class="link-kembali">← Kembali ke Toko</a>
 </div>
+
 <script>
-const KEY = 'db_produk_tokohijau'; let editId=null;
-function ambil(k){return JSON.parse(localStorage.getItem(k))||[]}
-function simpan(k,d){localStorage.setItem(k,JSON.stringify(d))}
-function login(e){e.preventDefault();if(document.getElementById('user').value==='admin'&&document.getElementById('pass').value==='admin123'){document.getElementById('loginScreen').classList.add('hidden');document.getElementById('appScreen').classList.remove('hidden');muat()}}
-function v(n){document.querySelectorAll('.view').forEach(x=>x.classList.add('hidden'));document.getElementById('v'+n).classList.remove('hidden');document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.textContent.includes(n.charAt(0).toUpperCase()+n.slice(1))))}
-function simpan(){
-  const p=ambil(KEY);
-  if(editId){const x=p.find(i=>i.id===editId);x.nama=nm.value;x.harga=+hr.value;x.kategori=kt.value;x.stok=+st.value;x.ukuran=uk.value;x.varianWarna=wr.value;x.gambar=gb.value;editId=null}
-  else{p.push({id:Date.now(),nama:nm.value,harga:+hr.value,kategori:kt.value,stok:+st.value,ukuran:uk.value,varianWarna:wr.value,gambar:gb.value,warna:'#'+Math.random().toString(16).slice(2,8)})}
-  simpan(KEY,p);muat();document.querySelectorAll('input').forEach(i=>i.value='')
+const DB = 'db_toko';
+let idEdit = null;
+
+function ambil(k) { return JSON.parse(localStorage.getItem(k)) || []; }
+function simpan(k,d) { localStorage.setItem(k, JSON.stringify(d)); }
+
+function masuk() {
+    if(user.value==='admin' && pass.value==='admin123') {
+        hal-login.classList.add('hidden');
+        hal-admin.classList.remove('hidden');
+        tampilData();
+    } else alert('Salah!');
 }
-function muat(){const p=ambil(KEY);document.getElementById('jmlP').innerText=p.length;document.getElementById('tbl').innerHTML=p.map(x=>`<tr><td>${x.nama}</td><td>Rp ${x.harga.toLocaleString()}</td><td>${x.stok}</td><td><button onclick="e(${x.id})" class="text-xs px-1 bg-green-500 text-white rounded">Ubah</button> <button onclick="h(${x.id})" class="text-xs px-1 bg-red-500 text-white rounded">Hapus</button></td></tr>`).join('')}
-function e(id){const x=ambil(KEY).find(i=>i.id===id);editId=id;nm.value=x.nama;hr.value=x.harga;kt.value=x.kategori;st.value=x.stok;uk.value=x.ukuran||'';wr.value=x.varianWarna||'';gb.value=x.gambar||''}
-function h(id){if(confirm('Yakin?')){simpan(KEY,ambil(KEY).filter(i=>i.id!==id));muat()}}
+
+function tampilData() {
+    const data = ambil(DB);
+    tabel.innerHTML = data.map(x=>`<tr>
+        <td>${x.nama}</td>
+        <td>Rp ${x.harga.toLocaleString('id-ID')}</td>
+        <td>
+            <button class="btn-ubah" onclick="ubah(${x.id})">Ubah</button>
+            <button class="btn-hapus" onclick="hapus(${x.id})">Hapus</button>
+        </td>
+    </tr>`).join('');
+}
+
+function simpan() {
+    const data = ambil(DB);
+    if(idEdit) {
+        const x = data.find(i=>i.id===idEdit);
+        x.nama = nama.value; x.harga = +harga.value; x.ukuran = ukuran.value;
+        x.warna = warna.value; x.gambar = gambar.value; idEdit=null;
+    } else {
+        data.push({
+            id:Date.now(), nama:nama.value, harga:+harga.value, ukuran:ukuran.value,
+            warna:warna.value, gambar:gambar.value, warnaLatar:'#'+Math.random().toString(16).slice(2,8), ket:''
+        });
+    }
+    simpan(DB, data); tampilData();
+    document.querySelectorAll('input').forEach(i=>i.value='');
+}
+
+function ubah(id) {
+    const x = ambil(DB).find(i=>i.id===id); idEdit=id;
+    nama.value=x.nama; harga.value=x.harga; ukuran.value=x.ukuran||'';
+    warna.value=x.warna||''; gambar.value=x.gambar||'';
+}
+
+function hapus(id) {
+    if(confirm('Yakin hapus?')) simpan(DB, ambil(DB).filter(i=>i.id!==id)); tampilData();
+}
 </script>
 </body>
 </html>
