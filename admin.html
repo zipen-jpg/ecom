@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Panel Admin - Toko Online</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: '#2563EB',
+          primaryDark: '#1d4ed8',
+          hijau: '#16a34a',
+          amber: '#d97706'
+        },
+        fontFamily: {
+          display: ['Sora', 'sans-serif'],
+          body: ['Plus Jakarta Sans', 'sans-serif'],
+          mono: ['JetBrains Mono', 'monospace']
+        }
+      }
+    }
+  }
+</script>
+<style>
+  body { font-family: 'Plus Jakarta Sans', sans-serif; }
+  .font-display { font-family: 'Sora', sans-serif; }
+  .font-num { font-family: 'JetBrains Mono', monospace; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  @keyframes slideIn { from { transform: translateY(120%); opacity:0; } to { transform: translateY(0); opacity:1; } }
+  .toast-in { animation: slideIn .3s ease; }
+  .nav-item.active { background: #eff6ff; color: #2563EB; font-weight: 600; }
+  .nav-item.active svg, .nav-item.active .dot { color: #2563EB; }
+</style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+<!-- ==================== LOGIN SCREEN ==================== -->
+<div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
+  <form onsubmit="login(event)" class="bg-white w-full max-w-sm rounded-xl border border-gray-200 p-6">
+    <div class="flex flex-col items-center mb-5">
+      <div class="w-11 h-11 rounded-xl bg-primary flex items-center justify-center text-white font-display font-800 text-lg mb-2">⚡</div>
+      <h1 class="font-display font-700 text-gray-900">Login Admin</h1>
+      <p class="text-xs text-gray-400 mt-1">Masuk untuk mengelola toko</p>
+    </div>
+    <div class="space-y-3 mb-2">
+      <div>
+        <label class="text-[11px] text-gray-500 block mb-1">Username</label>
+        <input type="text" id="loginUser" autocomplete="username" placeholder="admin"
+          class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm focus:border-primary transition">
+      </div>
+      <div>
+        <label class="text-[11px] text-gray-500 block mb-1">Password</label>
+        <input type="password" id="loginPass" autocomplete="current-password" placeholder="••••••••"
+          class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm focus:border-primary transition">
+      </div>
+    </div>
+    <p id="loginError" class="hidden text-xs text-red-500 mb-3">Username atau password salah.</p>
+    <button type="submit" class="w-full bg-primary hover:bg-primaryDark text-white py-2.5 rounded-lg font-display font-700 text-sm active:scale-95 transition">Masuk</button>
+    <p class="text-center text-[11px] text-gray-400 mt-4">Demo: <span class="font-num">admin</span> / <span class="font-num">admin123</span></p>
+  </form>
+</div>
+
+<!-- ==================== APP SCREEN ==================== -->
+<div id="appScreen" class="hidden flex min-h-screen">
+
+  <!-- OVERLAY (mobile) -->
+  <div id="overlay" onclick="toggleSidebar(false)" class="hidden fixed inset-0 bg-black/40 z-30 md:hidden"></div>
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 -translate-x-full md:translate-x-0 transition-transform duration-200 flex flex-col">
+    <div class="h-16 flex items-center gap-2 px-5 border-b border-gray-100">
+      <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-display font-800 text-sm">⚡</div>
+      <span class="font-display font-800 text-gray-900 tracking-tight">Toko Admin</span>
+    </div>
+    <nav class="flex-1 p-3 space-y-1">
+      <button data-view="dashboard" onclick="showView('dashboard')" class="nav-item active w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition">
+        <span class="dot text-base">📊</span> Dashboard
+      </button>
+      <button data-view="produk" onclick="showView('produk')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition">
+        <span class="dot text-base">📦</span> Data Produk
+      </button>
+      <button data-view="laporan" onclick="showView('laporan')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition">
+        <span class="dot text-base">🧾</span> Laporan Penjualan
+      </button>
+      <button data-view="grafik" onclick="showView('grafik')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition">
+        <span class="dot text-base">📈</span> Grafik
+      </button>
+    </nav>
+    <div class="p-3 border-t border-gray-100 space-y-2">
+      <a href="index.html" class="w-full flex items-center justify-center gap-2 text-sm border border-gray-200 rounded-lg px-3 py-2.5 text-gray-600 hover:bg-gray-50 transition">
+        ← Kembali ke Toko
+      </a>
+      <button onclick="logout()" class="w-full flex items-center justify-center gap-2 text-sm border border-red-200 rounded-lg px-3 py-2.5 text-red-500 hover:bg-red-50 transition">
+        Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="flex-1 min-w-0">
+    <header class="sticky top-0 z-20 bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 md:px-6">
+      <div class="flex items-center gap-3">
+        <button onclick="toggleSidebar(true)" class="md:hidden text-gray-500 text-xl leading-none">☰</button>
+        <h1 id="pageTitle" class="font-display font-700 text-gray-900">Dashboard</h1>
+      </div>
+      <button onclick="resetContoh()" class="hidden sm:block text-xs text-gray-400 underline">Reset data contoh</button>
+    </header>
+
+    <main class="p-4 md:p-6 max-w-5xl">
+
+      <!-- ==================== VIEW: DASHBOARD ==================== -->
+      <section id="view-dashboard" class="view space-y-4">
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
+          <div class="bg-white p-4 rounded-xl border border-gray-200">
+            <p class="text-[11px] text-gray-500 mb-1">Total Produk</p>
+            <p id="jmlProduk" class="font-num text-xl font-700 text-primary">0</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-gray-200">
+            <p class="text-[11px] text-gray-500 mb-1">Total Transaksi</p>
+            <p id="jmlTransaksi" class="font-num text-xl font-700 text-hijau">0</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-gray-200 col-span-2 lg:col-span-1">
+            <p class="text-[11px] text-gray-500 mb-1">Total Pendapatan</p>
+            <p id="totalPendapatan" class="font-num text-base font-700 text-amber">Rp 0</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-gray-200 col-span-2 lg:col-span-1">
+            <p class="text-[11px] text-gray-500 mb-1">Pendapatan Hari Ini</p>
+            <p id="pendapatanHariIni" class="font-num text-base font-700 text-primary">Rp 0</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-gray-200 col-span-2 lg:col-span-1">
+            <p class="text-[11px] text-gray-500 mb-1">Produk Terlaris</p>
+            <p id="produkTerlaris" class="text-sm font-700 text-gray-800 truncate">-</p>
+            <p id="produkTerlarisQty" class="font-num text-[11px] text-gray-500"></p>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-gray-200">
+          <h3 class="font-display font-700 text-sm mb-3">Transaksi Terbaru</h3>
+          <div id="riwayatTransaksi" class="space-y-2"></div>
+          <p id="riwayatKosong" class="hidden text-center text-gray-400 text-sm py-6">Belum ada transaksi.</p>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW: DATA PRODUK ==================== -->
+      <section id="view-produk" class="view hidden space-y-4">
+        <div class="bg-white p-4 rounded-xl border border-gray-200">
+          <h3 class="font-display font-700 text-sm mb-3">Kelola Produk</h3>
+          <div class="grid grid-cols-2 gap-2 mb-2">
+            <input type="text" id="nama" placeholder="Nama Produk" class="bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm focus:border-primary transition">
+            <input type="number" id="harga" placeholder="Harga (Rp)" class="bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm font-num focus:border-primary transition">
+            <input type="text" id="kategori" placeholder="Kategori" class="bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm focus:border-primary transition">
+            <input type="number" id="stok" placeholder="Stok" class="bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm font-num focus:border-primary transition">
+          </div>
+          <input type="text" id="gambar" placeholder="URL Gambar (opsional, kosongkan untuk otomatis)" class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mb-3 focus:border-primary transition">
+          <div class="flex gap-2">
+            <button onclick="simpanProduk()" id="btnSimpan" class="flex-1 bg-primary hover:bg-primaryDark text-white py-2.5 rounded-lg font-display font-700 text-sm active:scale-95 transition">+ Tambah Produk</button>
+            <button onclick="batalEdit()" id="btnBatal" class="hidden px-4 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-600">Batal</button>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-gray-200">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-display font-700 text-sm">Daftar Semua Produk</h3>
+            <input id="cariAdmin" oninput="muatSemua()" type="text" placeholder="Cari..." class="bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs outline-none w-28 focus:border-primary transition">
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="text-left text-gray-500 border-b border-gray-200">
+                  <th class="py-2 pr-2">Produk</th>
+                  <th class="pr-2">Harga</th>
+                  <th class="pr-2">Stok</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tabelProduk"></tbody>
+            </table>
+          </div>
+          <p id="tabelKosong" class="hidden text-center text-gray-400 text-sm py-8">Belum ada produk.</p>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW: LAPORAN PENJUALAN ==================== -->
+      <section id="view-laporan" class="view hidden space-y-4">
+        <div class="bg-white p-4 rounded-xl border border-gray-200">
+          <h3 class="font-display font-700 text-sm mb-3">Filter Tanggal</h3>
+          <div class="flex flex-wrap items-end gap-2">
+            <div>
+              <label class="text-[11px] text-gray-500 block mb-1">Dari</label>
+              <input type="date" id="filterDari" class="bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm outline-none focus:border-primary transition">
+            </div>
+            <div>
+              <label class="text-[11px] text-gray-500 block mb-1">Sampai</label>
+              <input type="date" id="filterSampai" class="bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm outline-none focus:border-primary transition">
+            </div>
+            <button onclick="renderLaporan()" class="bg-primary hover:bg-primaryDark text-white text-sm px-4 py-2 rounded-lg font-display font-700 active:scale-95 transition">Terapkan</button>
+            <button onclick="resetFilterLaporan()" class="text-sm px-4 py-2 rounded-lg border border-gray-200 text-gray-600">Reset</button>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-gray-200">
+          <h3 class="font-display font-700 text-sm mb-3">Daftar Transaksi</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="text-left text-gray-500 border-b border-gray-200">
+                  <th class="py-2 pr-2">No</th>
+                  <th class="pr-2">Tanggal</th>
+                  <th class="pr-2">ID</th>
+                  <th class="pr-2">Total</th>
+                  <th class="pr-2">Jumlah Produk</th>
+                  <th class="pr-2">Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tabelLaporan"></tbody>
+            </table>
+          </div>
+          <p id="laporanKosong" class="hidden text-center text-gray-400 text-sm py-8">Tidak ada transaksi pada rentang ini.</p>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW: GRAFIK ==================== -->
+      <section id="view-grafik" class="view hidden space-y-4">
+        <div class="bg-white p-4 rounded-xl border border-gray-200">
+          <h3 class="font-display font-700 text-sm mb-3">Total Pendapatan 7 Hari Terakhir</h3>
+          <div class="h-64 md:h-72">
+            <canvas id="chartBar"></canvas>
+          </div>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-gray-200">
+          <h3 class="font-display font-700 text-sm mb-3">Produk Terlaris</h3>
+          <div class="h-64 md:h-72">
+            <canvas id="chartPie"></canvas>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- MODAL DETAIL TRANSAKSI -->
+<div id="modalDetail" class="hidden fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+  <div class="bg-white w-full max-w-md rounded-xl border border-gray-200 max-h-[85vh] flex flex-col">
+    <div class="flex items-center justify-between p-4 border-b border-gray-100">
+      <h3 class="font-display font-700 text-sm">Detail Transaksi</h3>
+      <button onclick="tutupDetail()" class="text-gray-400 text-xl leading-none">✕</button>
+    </div>
+    <div id="isiDetail" class="overflow-y-auto flex-1 p-4 space-y-2 text-sm"></div>
+  </div>
+</div>
+
+<div id="toastBox" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50"></div>
+
+<script>
+  const KEY_PRODUK = 'db_produk_tokohijau';
+  const KEY_TRANSAKSI = 'db_transaksi_tokohijau';
+
+  function ambilData(key) { return JSON.parse(localStorage.getItem(key)) || []; }
+  function simpanData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+
+  function placeholderImg(nama, warna) {
+    const huruf = (nama || '?').trim().charAt(0).toUpperCase();
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'>
+      <rect width='80' height='80' fill='${warna}'/>
+      <text x='50%' y='58%' font-family='Sora, sans-serif' font-size='30' font-weight='800' fill='white' text-anchor='middle'>${huruf}</text>
+    </svg>`;
+    return 'data:image/svg+xml;base64,' + btoa(svg);
+  }
+
+  const CONTOH_PRODUK = [
+    { nama:'Kaos Polos Combed', harga:75000, kategori:'Fashion', stok:20, warna:'#2563EB' },
+    { nama:'Sepatu Sneakers Urban', harga:249000, kategori:'Fashion', stok:8, warna:'#16a34a' },
+    { nama:'Earphone Bluetooth', harga:129000, kategori:'Elektronik', stok:15, warna:'#7c3aed' },
+    { nama:'Power Bank 10000mAh', harga:159000, kategori:'Elektronik', stok:3, warna:'#d97706' },
+    { nama:'Tote Bag Canvas', harga:45000, kategori:'Aksesoris', stok:0, warna:'#0891b2' },
+    { nama:'Topi Baseball', harga:59000, kategori:'Aksesoris', stok:12, warna:'#db2777' },
+    { nama:'Kopi Susu Kemasan', harga:18000, kategori:'Makanan', stok:30, warna:'#78350f' },
+    { nama:'Keripik Pedas 250g', harga:22000, kategori:'Makanan', stok:5, warna:'#dc2626' }
+  ];
+
+  function seedData() {
+    if (localStorage.getItem(KEY_PRODUK)) return;
+    const produk = CONTOH_PRODUK.map(p => ({ id: Date.now() + Math.floor(Math.random()*10000), ...p, gambar:'' }));
+    simpanData(KEY_PRODUK, produk);
+  }
+
+  function resetContoh() {
+    if (!confirm('Ini akan mengganti SEMUA data produk dengan data contoh. Lanjutkan?')) return;
+    const produk = CONTOH_PRODUK.map(p => ({ id: Date.now() + Math.floor(Math.random()*10000), ...p, gambar:'' }));
+    simpanData(KEY_PRODUK, produk);
+    muatSemua();
+    tampilkanToast('Data contoh dipasang ulang');
+  }
+
+  // ---------------- SIDEBAR & NAVIGASI ----------------
+  const JUDUL_VIEW = { dashboard:'Dashboard', produk:'Data Produk', laporan:'Laporan Penjualan', grafik:'Grafik' };
+
+  function toggleSidebar(buka) {
+    document.getElementById('sidebar').classList.toggle('-translate-x-full', !buka);
+    document.getElementById('overlay').classList.toggle('hidden', !buka);
+  }
+
+  function showView(nama) {
+    document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+    document.getElementById('view-' + nama).classList.remove('hidden');
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === nama));
+    document.getElementById('pageTitle').innerText = JUDUL_VIEW[nama];
+    toggleSidebar(false);
+
+    if (nama === 'laporan') renderLaporan();
+    if (nama === 'grafik') renderGrafik();
+  }
+
+  // ---------------- DASHBOARD ----------------
+  function muatSemua() {
+    const produkSemua = ambilData(KEY_PRODUK);
+    const transaksi = ambilData(KEY_TRANSAKSI);
+    const totalPendapatan = transaksi.reduce((sum, t) => sum + t.total, 0);
+
+    document.getElementById('jmlProduk').innerText = produkSemua.length;
+    document.getElementById('jmlTransaksi').innerText = transaksi.length;
+    document.getElementById('totalPendapatan').innerText = `Rp ${totalPendapatan.toLocaleString('id-ID')}`;
+
+    const hariIni = new Date().toDateString();
+    const pendapatanHariIni = transaksi
+      .filter(t => new Date(t.tanggal).toDateString() === hariIni)
+      .reduce((sum, t) => sum + t.total, 0);
+    document.getElementById('pendapatanHariIni').innerText = `Rp ${pendapatanHariIni.toLocaleString('id-ID')}`;
+
+    const jumlahTerjual = {};
+    transaksi.forEach(t => t.items.forEach(i => {
+      jumlahTerjual[i.nama] = (jumlahTerjual[i.nama] || 0) + i.qty;
+    }));
+    const terlaris = Object.entries(jumlahTerjual).sort((a, b) => b[1] - a[1])[0];
+    document.getElementById('produkTerlaris').innerText = terlaris ? terlaris[0] : '-';
+    document.getElementById('produkTerlarisQty').innerText = terlaris ? `${terlaris[1]} terjual` : '';
+
+    renderRiwayat(transaksi);
+    renderTabelProduk(produkSemua);
+  }
+
+  function renderRiwayat(transaksi) {
+    const terbaru = [...transaksi].reverse().slice(0, 6);
+    document.getElementById('riwayatKosong').classList.toggle('hidden', terbaru.length > 0);
+    document.getElementById('riwayatTransaksi').innerHTML = terbaru.map(t => {
+      const tgl = new Date(t.tanggal).toLocaleString('id-ID', { dateStyle:'medium', timeStyle:'short' });
+      const ringkasan = t.items.map(i => `${i.nama} x${i.qty}`).join(', ');
+      return `
+      <div class="flex items-center justify-between border-b border-gray-100 pb-2 text-xs">
+        <div class="min-w-0 pr-2">
+          <p class="truncate text-gray-700">${ringkasan}</p>
+          <p class="text-[10px] text-gray-400">${tgl}</p>
+        </div>
+        <span class="font-num text-hijau whitespace-nowrap">Rp ${t.total.toLocaleString('id-ID')}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // ---------------- DATA PRODUK (CRUD) ----------------
+  let idEdit = null;
+
+  function render
