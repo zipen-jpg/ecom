@@ -135,10 +135,49 @@
       </section>
 
       <section id="view-laporan" class="view hidden space-y-4">
-        <div class="bg-white p-4 rounded-xl border border-gray-200"><p class="text-center text-gray-500">Fitur Laporan</p></div>
+        <div class="bg-white p-4 rounded-xl border border-gray-200">
+          <h3 class="font-display font-700 text-sm mb-3">Filter Tanggal</h3>
+          <div class="flex flex-wrap items-end gap-2">
+            <div>
+              <label class="text-[11px] text-gray-500 block mb-1">Dari</label>
+              <input type="date" id="filterDari" class="bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm outline-none focus:border-primary transition">
+            </div>
+            <div>
+              <label class="text-[11px] text-gray-500 block mb-1">Sampai</label>
+              <input type="date" id="filterSampai" class="bg-gray-50 border border-gray-200 rounded-lg p-2 text-sm outline-none focus:border-primary transition">
+            </div>
+            <button onclick="renderLaporan()" class="bg-primary hover:bg-primaryDark text-white text-sm px-4 py-2 rounded-lg font-display font-700 active:scale-95 transition">Terapkan</button>
+            <button onclick="resetFilterLaporan()" class="text-sm px-4 py-2 rounded-lg border border-gray-200 text-gray-600">Reset</button>
+          </div>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-gray-200">
+          <h3 class="font-display font-700 text-sm mb-3">Daftar Transaksi</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="text-left text-gray-500 border-b border-gray-200">
+                  <th class="py-2 pr-2">No</th>
+                  <th class="pr-2">Tanggal</th>
+                  <th class="pr-2">Total</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tabelLaporan"></tbody>
+            </table>
+          </div>
+          <p id="laporanKosong" class="hidden text-center text-gray-400 text-sm py-8">Belum ada transaksi.</p>
+        </div>
       </section>
+
       <section id="view-grafik" class="view hidden space-y-4">
-        <div class="bg-white p-4 rounded-xl border border-gray-200"><p class="text-center text-gray-500">Fitur Grafik</p></div>
+        <div class="bg-white p-4 rounded-xl border border-gray-200">
+          <h3 class="font-display font-700 text-sm mb-3">Pendapatan Harian</h3>
+          <div class="h-64"><canvas id="chartBar"></canvas></div>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-gray-200">
+          <h3 class="font-display font-700 text-sm mb-3">Produk Terlaris</h3>
+          <div class="h-64"><canvas id="chartPie"></canvas></div>
+        </div>
       </section>
     </main>
   </div>
@@ -196,6 +235,7 @@
     const judul = {dashboard:'Dashboard', produk:'Data Produk', laporan:'Laporan', grafik:'Grafik'};
     document.getElementById('pageTitle').innerText = judul[nama];
     toggleSidebar(false);
+    if(nama==='grafik') setTimeout(renderGrafik, 150);
   }
 
   function muatSemua(){
@@ -268,6 +308,65 @@
     if(!confirm('Yakin hapus?')) return;
     simpanData(KEY_PRODUK, ambilData(KEY_PRODUK).filter(i=>i.id!==id));
     muatSemua();
+  }
+
+  // FUNGSI LAPORAN
+  function renderLaporan(){
+    const transaksi = ambilData(KEY_TRANSAKSI);
+    const dari = document.getElementById('filterDari').value;
+    const sampai = document.getElementById('filterSampai').value;
+    let hasil = transaksi;
+    if(dari && sampai){
+      hasil = transaksi.filter(t=>{
+        const tgl = new Date(t.tanggal).toISOString().split('T')[0];
+        return tgl >= dari && tgl <= sampai;
+      });
+    }
+    document.getElementById('laporanKosong').classList.toggle('hidden', hasil.length>0);
+    document.getElementById('tabelLaporan').innerHTML = hasil.map((t,i)=>`
+      <tr class="border-b border-gray-100">
+        <td class="py-2">${i+1}</td>
+        <td>${new Date(t.tanggal).toLocaleDateString('id-ID')}</td>
+        <td class="font-num text-hijau">Rp ${t.total.toLocaleString('id-ID')}</td>
+        <td><button onclick="alert('${t.items.map(i=>i.nama+' x'+i.qty).join(', ')}')" class="text-primary text-xs">Lihat</button></td>
+      </tr>
+    `).join('');
+  }
+  function resetFilterLaporan(){
+    document.getElementById('filterDari').value='';
+    document.getElementById('filterSampai').value='';
+    renderLaporan();
+  }
+
+  // FUNGSI GRAFIK
+  let grafikSudah = false;
+  function renderGrafik(){
+    if(grafikSudah) return;
+    const transaksi = ambilData(KEY_TRANSAKSI);
+
+    // Grafik Batang
+    const hari = {};
+    transaksi.forEach(t=>{
+      const tgl = new Date(t.tanggal).toLocaleDateString('id-ID');
+      hari[tgl] = (hari[tgl]||0) + t.total;
+    });
+    const labelHari = Object.keys(hari).slice(-7);
+    const nilaiHari = labelHari.map(d=>hari[d]);
+    new Chart(document.getElementById('chartBar'),{
+      type:'bar',
+      data:{labels:labelHari,datasets:[{label:'Pendapatan',data:nilaiHari,backgroundColor:'#2563EB'}]}
+    });
+
+    // Grafik Lingkaran
+    const jml = {};
+    transaksi.forEach(t=>t.items.forEach(i=>{jml[i.nama]=(jml[i.nama]||0)+i.qty;}));
+    const namaBrg = Object.keys(jml);
+    const jumlahBrg = Object.values(jml);
+    new Chart(document.getElementById('chartPie'),{
+      type:'doughnut',
+      data:{labels:namaBrg,datasets:[{data:jumlahBrg,backgroundColor:['#2563EB','#16a34a','#d97706','#db2777','#7c3aed']}]}
+    });
+    grafikSudah = true;
   }
 
   seedData();
