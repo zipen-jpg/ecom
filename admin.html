@@ -37,6 +37,9 @@
   .toast-in { animation: slideIn .3s ease; }
   .nav-item.active { background: '#fff0f5'; color: '#ff2d55'; font-weight: 600; }
   img { max-width: 100%; height: auto; }
+  /* MODAL INFORMASI PEMBELI */
+  .modal-latar { position: fixed; inset:0; background:rgba(0,0,0,0.5); z-index:50; display:flex; align-items:center; justify-content:center; padding:1rem; }
+  .modal-kotak { background:white; border-radius:1rem; max-width:420px; width:100%; max-height:90vh; overflow-y:auto; }
   @media (max-width: 640px) {
     main { padding: 0.75rem !important; }
     .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -199,6 +202,18 @@
   </div>
 </div>
 
+<!-- === MODAL INFORMASI PEMBELI === -->
+<div id="modalPembeli" class="hidden modal-latar" onclick="if(event.target===this) tutupModalPembeli()">
+  <div class="modal-kotak p-5 m-4">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-display font-700 text-lg text-primary">📋 Informasi Pembeli</h3>
+      <button onclick="tutupModalPembeli()" class="text-gray-400 text-xl">×</button>
+    </div>
+    <div id="isiModalPembeli" class="space-y-2 text-sm"></div>
+    <button onclick="tutupModalPembeli()" class="w-full mt-4 bg-primary text-white py-2 rounded-lg font-display font-700">Tutup</button>
+  </div>
+</div>
+
 <div id="toastBox" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50"></div>
 
 <script>
@@ -297,7 +312,6 @@
     const cari = document.getElementById('cariAdmin').value.toLowerCase();
     const hasil = list.filter(p=>p.nama.toLowerCase().includes(cari));
     document.getElementById('tabelProduk').innerHTML = hasil.map(p=>{
-      // === GAMBAR SAMA DENGAN index.html ===
       const tampilGambar = p.gambar && p.gambar.trim() !== '' 
         ? p.gambar 
         : buatGambarProduk(p.nama, p.warnaLatar||'#ff2d55');
@@ -332,7 +346,6 @@
 
     const produk = ambilData(KEY_PRODUK);
     if(idEdit){
-      // === EDIT PRODUK ===
       const idx = produk.findIndex(i=>i.id===idEdit);
       produk[idx] = {
         ...produk[idx], 
@@ -343,7 +356,6 @@
       document.getElementById('btnSimpan').innerText = '+ Tambah Produk';
       document.getElementById('btnBatal').classList.add('hidden');
     }else{
-      // === TAMBAH PRODUK BARU ===
       const warnaLatar = '#' + Math.floor(Math.random()*16777215).toString(16);
       produk.push({
         id: Date.now(), 
@@ -387,6 +399,50 @@
     muatSemua();
   }
 
+  // === FUNGSI MODAL INFORMASI PEMBELI ===
+  function bukaModalPembeli(indexTransaksi){
+    const transaksi = ambilData(KEY_TRANSAKSI);
+    const t = transaksi[indexTransaksi];
+    if(!t) return;
+
+    const penerima = t.penerima || {};
+    document.getElementById('isiModalPembeli').innerHTML = `
+      <div class="grid grid-cols-3 gap-1 border-b border-gray-100 pb-2">
+        <span class="font-semibold text-gray-600">Tanggal</span>
+        <span class="col-span-2">${new Date(t.tanggal).toLocaleDateString('id-ID')} ${new Date(t.tanggal).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})}</span>
+      </div>
+      <div class="grid grid-cols-3 gap-1 border-b border-gray-100 pb-2">
+        <span class="font-semibold text-gray-600">Nama</span>
+        <span class="col-span-2 font-semibold">${penerima.nama || '-'}</span>
+      </div>
+      <div class="grid grid-cols-3 gap-1 border-b border-gray-100 pb-2">
+        <span class="font-semibold text-gray-600">Telepon</span>
+        <span class="col-span-2">${penerima.telp || '-'}</span>
+      </div>
+      <div class="grid grid-cols-3 gap-1 border-b border-gray-100 pb-2">
+        <span class="font-semibold text-gray-600">Alamat</span>
+        <span class="col-span-2">${penerima.alamat || '-'} ${penerima.kodePos || ''}</span>
+      </div>
+      <div class="grid grid-cols-3 gap-1 border-b border-gray-100 pb-2">
+        <span class="font-semibold text-gray-600">Pembayaran</span>
+        <span class="col-span-2">${t.pembayaran || '-'}</span>
+      </div>
+      <div class="grid grid-cols-3 gap-1 border-b border-gray-100 pb-2">
+        <span class="font-semibold text-gray-600">Barang</span>
+        <span class="col-span-2">${t.items.map(i=>`${i.nama} (${i.ukuran||'-'} / ${i.warna||'-'}) × ${i.qty}`).join('<br>')}</span>
+      </div>
+      <div class="grid grid-cols-3 gap-1 pt-1">
+        <span class="font-semibold text-gray-600">Total</span>
+        <span class="col-span-2 font-bold text-primary text-lg">Rp ${t.total.toLocaleString('id-ID')}</span>
+      </div>
+    `;
+    document.getElementById('modalPembeli').classList.remove('hidden');
+  }
+
+  function tutupModalPembeli(){
+    document.getElementById('modalPembeli').classList.add('hidden');
+  }
+
   function renderLaporan(){
     const transaksi = ambilData(KEY_TRANSAKSI);
     const dari = document.getElementById('filterDari').value;
@@ -404,7 +460,7 @@
         <td class="py-2">${i+1}</td>
         <td>${new Date(t.tanggal).toLocaleDateString('id-ID')}</td>
         <td class="font-num text-hijau">Rp ${t.total.toLocaleString('id-ID')}</td>
-        <td><button onclick="alert('${t.items.map(i=>i.nama+' x'+i.qty).join(', ')}')" class="text-primary text-xs">Lihat</button></td>
+        <td><button onclick="bukaModalPembeli(${transaksi.indexOf(t)})" class="text-primary text-xs font-semibold">👁 Lihat Pembeli</button></td>
       </tr>
     `).join('');
   }
@@ -446,7 +502,6 @@
 
   cekLogin();
 
-  // === SINKRON OTOMATIS DENGAN index.html ===
   window.addEventListener('storage', (e) => {
     if (e.key === KEY_PRODUK || e.key === KEY_TRANSAKSI) { 
       muatSemua(); 
