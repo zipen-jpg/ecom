@@ -41,6 +41,17 @@
   @keyframes ping { 75%,100% { transform: scale(2); opacity:0; } }
   .page { display: none; }
   .page.active { display: block; }
+
+  /* ✅ Fitur Responsif */
+  @media (max-width: 480px) {
+    .grid-produk { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+  }
+  @media (min-width: 768px) {
+    .grid-produk { grid-template-columns: repeat(3, 1fr) !important; }
+  }
+  @media (min-width: 1024px) {
+    .grid-produk { grid-template-columns: repeat(4, 1fr) !important; }
+  }
 </style>
 </head>
 <body class="bg-dark text-white pb-24">
@@ -69,12 +80,12 @@
   </div>
 
   <div class="max-w-4xl mx-auto p-3">
-    <div id="gridProduk" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2"></div>
+    <div id="gridProduk" class="grid-produk grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2"></div>
     <p id="kosongMsg" class="hidden text-center text-gray-500 text-sm py-16">Produk tidak ditemukan.</p>
   </div>
 </div>
 
-<!-- ============= HALAMAN DETAIL PRODUK ============= -->
+<!-- ============= HALAMAN DETAIL PRODUK ✅ DIPERBAIKI ============= -->
 <div id="pageDetail" class="page">
   <div class="sticky top-0 z-30 bg-dark/95 backdrop-blur border-b border-gray-800">
     <div class="max-w-4xl mx-auto p-3 flex items-center gap-3">
@@ -83,16 +94,20 @@
     </div>
   </div>
   <div class="max-w-2xl mx-auto p-3">
-    <img id="detGambar" class="w-full aspect-square object-cover rounded-xl">
-    <div class="mt-4 space-y-2">
-      <span id="detKategori" class="text-[10px] text-gray-500 uppercase tracking-wide"></span>
-      <h2 id="detNama" class="font-display font-700 text-xl"></h2>
+    <!-- ✅ GAMBAR DIPERBAIKI -->
+    <img id="detGambar" class="w-full aspect-square object-cover rounded-xl bg-gray-800" alt="Gambar Produk">
+    <div class="mt-4 space-y-3">
+      <span id="detKategori" class="text-[10px] text-gray-500 uppercase tracking-wide px-2 py-1 bg-card rounded-full inline-block"></span>
+      <h2 id="detNama" class="font-display font-700 text-xl leading-tight"></h2>
       <p id="detHarga" class="font-num font-700 text-primary text-2xl"></p>
-      <p id="detStok" class="text-[11px] font-num"></p>
-      <p id="detUkuran" class="text-sm text-gray-400"></p>
-      <p id="detWarna" class="text-sm text-gray-400"></p>
+      <p id="detStok" class="text-[13px] font-num"></p>
+      <div class="border-t border-gray-800 pt-3 space-y-2">
+        <p id="detUkuran" class="text-sm text-gray-300"></p>
+        <p id="detWarna" class="text-sm text-gray-300"></p>
+        <p id="detDeskripsi" class="text-sm text-gray-400 leading-relaxed"></p>
+      </div>
     </div>
-    <div class="fixed bottom-0 left-0 right-0 bg-dark border-t border-gray-800 p-3 flex gap-2">
+    <div class="fixed bottom-0 left-0 right-0 bg-dark border-t border-gray-800 p-3 flex gap-2 max-w-2xl mx-auto">
       <button onclick="bukaKeranjang()" class="w-16 border border-primary text-primary rounded-lg py-3 text-lg">🛒</button>
       <button onclick="bukaPesan()" class="flex-1 bg-primary rounded-lg py-3 font-display font-700">Beli Sekarang</button>
     </div>
@@ -101,7 +116,7 @@
 
 <!-- ============= MODAL PILIHAN PEMBELIAN ============= -->
 <div id="modalPesan" class="hidden fixed inset-0 z-50 bg-black/80 flex items-end">
-  <div class="bg-card w-full max-w-md mx-auto rounded-t-2xl p-4 max-h-[80vh] overflow-y-auto">
+  <div class="bg-card w-full max-w-md mx-auto rounded-t-2xl p-4 max-h-[85vh] overflow-y-auto">
     <div class="flex justify-between items-center mb-4">
       <h3 class="font-display font-700">Pilih Pesanan</h3>
       <button onclick="tutupPesan()" class="text-xl">✕</button>
@@ -115,11 +130,11 @@
           <button onclick="ubahJumlah(1)" class="w-8 h-8 rounded border border-gray-700">+</button>
         </div>
       </div>
-      <div id="wrapUkuran">
+      <div id="wrapUkuran" class="hidden">
         <label class="text-xs text-gray-400 mb-1 block">Ukuran</label>
         <div id="pilihUkuran" class="flex flex-wrap gap-2"></div>
       </div>
-      <div id="wrapWarna">
+      <div id="wrapWarna" class="hidden">
         <label class="text-xs text-gray-400 mb-1 block">Warna</label>
         <div id="pilihWarna" class="flex flex-wrap gap-2"></div>
       </div>
@@ -144,7 +159,49 @@
         <span class="text-gray-400 text-sm">Total</span>
         <span id="totalKeranjang" class="font-num font-700 text-lg text-yellow-400">Rp 0</span>
       </div>
-      <button onclick="bukaPesanCheckout()" id="btnCheckout" class="w-full bg-primary py-3 rounded-lg font-display font-700 active:scale-95 transition">Checkout</button>
+      <button onclick="bukaFormCheckout()" id="btnCheckout" class="w-full bg-primary py-3 rounded-lg font-display font-700 active:scale-95 transition">Checkout</button>
+    </div>
+  </div>
+</div>
+
+<!-- ✅ MODAL FORM DATA PENERIMA & PEMBAYARAN -->
+<div id="modalCheckout" class="hidden fixed inset-0 z-50 bg-black/80 flex items-end">
+  <div class="bg-card w-full max-w-md mx-auto rounded-t-2xl p-4 max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="font-display font-700">Data Pengiriman & Pembayaran</h3>
+      <button onclick="tutupCheckout()" class="text-xl">✕</button>
+    </div>
+    <div class="space-y-3">
+      <h4 class="text-sm font-bold text-gray-300">📋 Data Penerima</h4>
+      <input type="text" id="namaPenerima" placeholder="Nama Lengkap Penerima" class="w-full bg-dark border border-gray-700 p-2.5 rounded-lg outline-none text-sm">
+      <input type="tel" id="telpPenerima" placeholder="Nomor Telepon / HP" class="w-full bg-dark border border-gray-700 p-2.5 rounded-lg outline-none text-sm">
+      <textarea id="alamatPenerima" rows="3" placeholder="Alamat Lengkap Pengiriman" class="w-full bg-dark border border-gray-700 p-2.5 rounded-lg outline-none text-sm resize-none"></textarea>
+      <input type="text" id="kotaPenerima" placeholder="Kota / Kode Pos" class="w-full bg-dark border border-gray-700 p-2.5 rounded-lg outline-none text-sm">
+
+      <h4 class="text-sm font-bold text-gray-300 mt-4">💳 Metode Pembayaran</h4>
+      <div class="space-y-2">
+        <label class="flex items-center gap-3 border border-gray-700 p-2.5 rounded-lg cursor-pointer hover:border-primary">
+          <input type="radio" name="bayar" value="COD" checked class="accent-primary">
+          <span class="text-sm">💰 Bayar di Tempat (COD)</span>
+        </label>
+        <label class="flex items-center gap-3 border border-gray-700 p-2.5 rounded-lg cursor-pointer hover:border-primary">
+          <input type="radio" name="bayar" value="Transfer" class="accent-primary">
+          <span class="text-sm">🏦 Transfer Bank</span>
+        </label>
+        <label class="flex items-center gap-3 border border-gray-700 p-2.5 rounded-lg cursor-pointer hover:border-primary">
+          <input type="radio" name="bayar" value="EWallet" class="accent-primary">
+          <span class="text-sm">📱 E-Wallet (DANA/OVO/Gopay)</span>
+        </label>
+      </div>
+
+      <div class="border-t border-gray-700 pt-3 mt-3">
+        <div class="flex justify-between items-center mb-3">
+          <span class="text-gray-400">Total Pembayaran</span>
+          <span id="totalBayarCheckout" class="font-num font-bold text-yellow-400 text-lg">Rp 0</span>
+        </div>
+      </div>
+
+      <button onclick="prosesCheckout()" class="w-full bg-hijau py-3 rounded-lg font-display font-700 mt-2">✅ Konfirmasi Pesanan</button>
     </div>
   </div>
 </div>
@@ -161,17 +218,38 @@
   function ambilData(key) { return JSON.parse(localStorage.getItem(key)) || []; }
   function simpanData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
+  // ✅ FUNGSI PROSES LINK GAMBAR DARI GOOGLE
+  function prosesLinkGambar(link) {
+    if (!link || link.trim() === '') return '';
+    let l = link.trim();
+    if (l.includes('google.com/imgres')) {
+      const cocok = l.match(/imgurl=([^&]+)/);
+      if (cocok && cocok[1]) l = decodeURIComponent(cocok[1]);
+    }
+    if (l.includes('googleusercontent.com') && l.includes('=w')) {
+      l = l.substring(0, l.indexOf('=w'));
+    }
+    return l;
+  }
+
+  // ✅ GAMBAR OTOMATIS JIKA TIDAK ADA LINK
   function placeholderImg(nama, warna) {
     const huruf = (nama || '?').trim().charAt(0).toUpperCase();
-    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='200' height='200' fill='${warna}'/><text x='50%' y='55%' font-size='72' font-weight='800' fill='white' text-anchor='middle'>${huruf}</text></svg>`;
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><rect width='300' height='300' fill='${warna}'/><text x='50%' y='55%' font-size='120' font-weight='800' fill='white' text-anchor='middle'>${huruf}</text></svg>`;
     return 'data:image/svg+xml;base64,' + btoa(svg);
+  }
+
+  // ✅ DAPATKAN GAMBAR: UTAMAKAN LINK, KOSONG=OTOMATIS
+  function dapatkanGambar(p) {
+    const link = prosesLinkGambar(p.gambar || '');
+    return link || placeholderImg(p.nama, p.warna || '#333');
   }
 
   function seedData() {
     if (localStorage.getItem(KEY_PRODUK)) return;
     const contoh = [
-      { nama:'Kaos Polos Combed', harga:75000, kategori:'Fashion', stok:20, warna:'#ff2b55', gambar:'', ukuran:'S,M,L,XL', varianWarna:'Merah,Putih,Hitam' },
-      { nama:'Sepatu Sneakers', harga:249000, kategori:'Fashion', stok:8, warna:'#00b37e', gambar:'', ukuran:'38,39,40,41,42', varianWarna:'Hitam,Putih' }
+      { nama:'Kaos Polos Combed 30s', harga:75000, kategori:'Fashion', stok:20, warna:'#ff2b55', gambar:'', ukuran:'S,M,L,XL', varianWarna:'Merah,Putih,Hitam', deskripsi:'Kaos bahan katun combed 30s, lembut, nyaman dipakai, tidak mudah luntur. Cocok untuk sehari-hari.' },
+      { nama:'Sepatu Sneakers Urban', harga:249000, kategori:'Fashion', stok:8, warna:'#00b37e', gambar:'', ukuran:'38,39,40,41,42', varianWarna:'Hitam,Putih', deskripsi:'Sepatu sneakers dengan bahan berkualitas, sol anti slip, nyaman dipakai seharian.' }
     ];
     simpanData(KEY_PRODUK, contoh.map(p=>({id:Date.now()+Math.random(),...p})));
   }
@@ -182,18 +260,20 @@
     window.scrollTo(0,0);
   }
 
+  // ✅ HALAMAN DETAIL DIPERBAIKI — SEMUA DATA MUNCUL
   function bukaDetail(id){
     const p = ambilData(KEY_PRODUK).find(i=>i.id===id);
     if(!p) return;
     idProdukAktif = id; dataProdukAktif = p;
-    const gbr = p.gambar || placeholderImg(p.nama, p.warna||'#333');
+    const gbr = dapatkanGambar(p);
     document.getElementById('detGambar').src = gbr;
     document.getElementById('detKategori').innerText = p.kategori;
     document.getElementById('detNama').innerText = p.nama;
     document.getElementById('detHarga').innerText = `Rp ${p.harga.toLocaleString('id-ID')}`;
-    document.getElementById('detStok').innerText = p.stok<=0?'Stok habis':`Tersedia ${p.stok} barang`;
-    document.getElementById('detUkuran').innerText = p.ukuran?`Ukuran tersedia: ${p.ukuran}`:'';
-    document.getElementById('detWarna').innerText = p.varianWarna?`Warna tersedia: ${p.varianWarna}`:'';
+    document.getElementById('detStok').innerText = p.stok<=0?'❌ Stok habis':`✅ Tersedia ${p.stok} barang`;
+    document.getElementById('detUkuran').innerText = p.ukuran?`📏 Ukuran tersedia: ${p.ukuran}`:'📏 Ukuran: Standar';
+    document.getElementById('detWarna').innerText = p.varianWarna?`🎨 Warna tersedia: ${p.varianWarna}`:'🎨 Warna: Sesuai foto';
+    document.getElementById('detDeskripsi').innerText = p.deskripsi || '📝 Deskripsi produk belum tersedia.';
     bukaHalaman('detail');
   }
 
@@ -202,9 +282,9 @@
     document.getElementById('pJumlah').innerText = jumlahPesan;
     const u = dataProdukAktif.ukuran?dataProdukAktif.ukuran.split(','):[];
     const w = dataProdukAktif.varianWarna?dataProdukAktif.varianWarna.split(','):[];
-    document.getElementById('wrapUkuran').style.display = u.length?'block':'none';
+    document.getElementById('wrapUkuran').classList.toggle('hidden', !u.length);
     document.getElementById('pilihUkuran').innerHTML = u.map(x=>`<button onclick="pilihUkuran('${x}')" class="px-3 py-1 border border-gray-700 rounded text-xs">${x}</button>`).join('');
-    document.getElementById('wrapWarna').style.display = w.length?'block':'none';
+    document.getElementById('wrapWarna').classList.toggle('hidden', !w.length);
     document.getElementById('pilihWarna').innerHTML = w.map(x=>`<button onclick="pilihWarna('${x}')" class="px-3 py-1 border border-gray-700 rounded text-xs">${x}</button>`).join('');
     document.getElementById('modalPesan').classList.remove('hidden');
   }
@@ -214,15 +294,15 @@
     jumlahPesan = Math.max(1, Math.min(stok, jumlahPesan+n));
     document.getElementById('pJumlah').innerText = jumlahPesan;
   }
-  function pilihUkuran(x){ ukuranPesan=x; document.querySelectorAll('#pilihUkuran button').forEach(b=>b.classList.toggle('border-primary',b.innerText===x)); }
-  function pilihWarna(x){ warnaPesan=x; document.querySelectorAll('#pilihWarna button').forEach(b=>b.classList.toggle('border-primary',b.innerText===x)); }
+  function pilihUkuran(x){ ukuranPesan=x; document.querySelectorAll('#pilihUkuran button').forEach(b=>b.classList.toggle('border-primary',b.innerText.trim()===x)); }
+  function pilihWarna(x){ warnaPesan=x; document.querySelectorAll('#pilihWarna button').forEach(b=>b.classList.toggle('border-primary',b.innerText.trim()===x)); }
 
   function tambahDariPesan(){
     let keranjang = ambilData(KEY_KERANJANG);
     const idx = keranjang.findIndex(i=>i.id===idProdukAktif && i.ukuran===ukuranPesan && i.warna===warnaPesan);
     if(idx>=0) keranjang[idx].qty+=jumlahPesan;
     else keranjang.push({id:idProdukAktif,qty:jumlahPesan,ukuran:ukuranPesan,warna:warnaPesan});
-    simpanData(KEY_KERANJANG,keranjang); perbaruiCounter(); tutupPesan(); tampilkanToast('Ditambahkan ke keranjang');
+    simpanData(KEY_KERANJANG,keranjang); perbaruiCounter(); tutupPesan(); tampilkanToast('✅ Ditambahkan ke keranjang');
   }
   function langsungBeli(){ tambahDariPesan(); bukaKeranjang(); }
 
@@ -235,17 +315,19 @@
     document.getElementById('kategoriChips').innerHTML = u.map(k=>`<button onclick="pilihKat('${k}')" class="whitespace-nowrap text-xs px-3 py-1.5 rounded-full border ${k===a?'bg-primary border-primary':'border-gray-700 text-gray-400'}">${k}</button>`).join('');
   }
   function pilihKat(k){ window._kat=k; renderKategori(); renderProduk(); }
+
+  // ✅ PRODUK DENGAN GAMBAR YANG MUNCUL
   function renderProduk(){
     const semua = ambilData(KEY_PRODUK);
     const cari = document.getElementById('cariInput').value.toLowerCase();
     const kat = window._kat||'Semua';
     const hasil = semua.filter(p=>(kat==='Semua'||p.kategori===kat) && p.nama.toLowerCase().includes(cari));
-    document.getElementById('kosongMsg').classList.toggle('hidden',hasil.length);
+    document.getElementById('kosongMsg').classList.toggle('hidden',hasil.length>0);
     document.getElementById('gridProduk').innerHTML = hasil.map(p=>{
       const habis = p.stok<=0;
-      const g = p.gambar||placeholderImg(p.nama,p.warna||'#333');
+      const g = dapatkanGambar(p);
       return `<div class="bg-card rounded-xl border border-gray-800 overflow-hidden flex flex-col">
-        <img src="${g}" class="w-full aspect-square object-cover">
+        <img src="${g}" onerror="this.src='${placeholderImg(p.nama,p.warna||'#333')}'" class="w-full aspect-square object-cover">
         <div class="p-2.5 flex flex-col gap-1 flex-1">
           <span class="text-[10px] text-gray-500 uppercase">${p.kategori}</span>
           <h3 class="text-sm font-medium">${p.nama}</h3>
@@ -259,11 +341,11 @@
 
   function tambahKeKeranjang(id){
     const p = ambilData(KEY_PRODUK).find(i=>i.id===id);
-    if(!p||p.stok<=0) return tampilkanToast('Stok habis');
+    if(!p||p.stok<=0) return tampilkanToast('❌ Stok habis');
     let k = ambilData(KEY_KERANJANG);
     const x = k.find(i=>i.id===id);
     x?x.qty++:k.push({id,qty:1,ukuran:'',warna:''});
-    simpanData(KEY_KERANJANG,k); perbaruiCounter(); tampilkanToast('Ditambahkan');
+    simpanData(KEY_KERANJANG,k); perbaruiCounter(); tampilkanToast('✅ Ditambahkan ke keranjang');
   }
   function perbaruiCounter(){
     const total = ambilData(KEY_KERANJANG).reduce((s,i)=>s+i.qty,0);
@@ -271,21 +353,29 @@
   }
   function bukaKeranjang(){ renderKeranjang(); document.getElementById('modalKeranjang').classList.remove('hidden'); }
   function tutupKeranjang(){ document.getElementById('modalKeranjang').classList.add('hidden'); }
+
+  // ✅ RENDER KERANJANG DENGAN GAMBAR
   function renderKeranjang(){
     const produk = ambilData(KEY_PRODUK), k = ambilData(KEY_KERANJANG);
     const isi = document.getElementById('isiKeranjang');
-    if(!k.length){ isi.innerHTML='<p class="text-center text-gray-500 py-10">Kosong</p>'; return; }
+    if(!k.length){ isi.innerHTML='<p class="text-center text-gray-500 py-10">Keranjang masih kosong</p>'; document.getElementById('totalKeranjang').innerText='Rp 0'; return; }
     let total=0;
     isi.innerHTML = k.map(i=>{
       const p = produk.find(x=>x.id===i.id); if(!p) return '';
       total += p.harga*i.qty;
+      const g = dapatkanGambar(p);
       return `<div class="flex items-center gap-3 border-b border-gray-800 pb-3">
-        <img src="${p.gambar||placeholderImg(p.nama,p.warna||'#333')}" class="w-14 h-14 rounded">
-        <div class="flex-1"><p class="text-sm">${p.nama}</p><p class="text-xs text-gray-400">${i.ukuran?i.ukuran+' ':''}${i.warna?i.warna:''} x${i.qty}</p></div>
-        <div class="flex gap-2"><button onclick="ubahQty(${i.id},-1,'${i.ukuran}','${i.warna}')" class="w-7 h-7 rounded border">-</button><span>${i.qty}</span><button onclick="ubahQty(${i.id},1,'${i.ukuran}','${i.warna}')" class="w-7 h-7 rounded border">+</button></div>
+        <img src="${g}" onerror="this.src='${placeholderImg(p.nama,p.warna||'#333')}'" class="w-14 h-14 rounded-lg object-cover">
+        <div class="flex-1 min-w-0"><p class="text-sm font-medium">${p.nama}</p><p class="text-xs text-gray-400">${i.ukuran?i.ukuran+' ':''}${i.warna?i.warna:''} x${i.qty}</p></div>
+        <div class="flex gap-1 items-center">
+          <button onclick="ubahQty(${i.id},-1,'${i.ukuran}','${i.warna}')" class="w-7 h-7 rounded border border-gray-700 text-sm">-</button>
+          <span class="w-6 text-center text-sm">${i.qty}</span>
+          <button onclick="ubahQty(${i.id},1,'${i.ukuran}','${i.warna}')" class="w-7 h-7 rounded border border-gray-700 text-sm">+</button>
+        </div>
       </div>`;
     }).join('');
     document.getElementById('totalKeranjang').innerText = `Rp ${total.toLocaleString('id-ID')}`;
+    window._totalCheckout = total;
   }
   function ubahQty(id,d,uk,wr){
     let k = ambilData(KEY_KERANJANG);
@@ -295,15 +385,71 @@
     if(k[idx].qty<=0) k.splice(idx,1);
     simpanData(KEY_KERANJANG,k); renderKeranjang(); perbaruiCounter();
   }
-  function checkout(){
+
+  // ✅ BUKA FORM CHECKOUT
+  function bukaFormCheckout(){
+    if(ambilData(KEY_KERANJANG).length===0) return tampilkanToast('Keranjang masih kosong!');
+    tutupKeranjang();
+    document.getElementById('totalBayarCheckout').innerText = `Rp ${(window._totalCheckout||0).toLocaleString('id-ID')}`;
+    document.getElementById('modalCheckout').classList.remove('hidden');
+  }
+  function tutupCheckout(){ document.getElementById('modalCheckout').classList.add('hidden'); }
+
+  // ✅ PROSES CHECKOUT DENGAN DATA PENERIMA
+  function prosesCheckout(){
+    const nama = document.getElementById('namaPenerima').value.trim();
+    const telp = document.getElementById('telpPenerima').value.trim();
+    const alamat = document.getElementById('alamatPenerima').value.trim();
+    const kota = document.getElementById('kotaPenerima').value.trim();
+    const bayar = document.querySelector('input[name="bayar"]:checked')?.value;
+
+    if(!nama||!telp||!alamat||!kota) return alert('Lengkapi semua data penerima!');
+
     let k = ambilData(KEY_KERANJANG), p = ambilData(KEY_PRODUK);
-    k.forEach(i=>{ const brg = p.find(x=>x.id===i.id); if(brg) brg.stok-=i.qty; });
-    simpanData(KEY_PRODUK,p); simpanData(KEY_KERANJANG,[]);
-    tutupKeranjang(); perbaruiCounter(); renderProduk(); tampilkanToast('Berhasil!');
+    let totalBayar = 0;
+    const items = [];
+
+    for(const i of k){
+      const brg = p.find(x=>x.id===i.id);
+      if(!brg || brg.stok < i.qty) return alert(`Stok "${brg?.nama||'produk'}" tidak cukup!`);
+      brg.stok -= i.qty;
+      totalBayar += brg.harga * i.qty;
+      items.push({id:i.id,nama:brg.nama,harga:brg.harga,qty:i.qty,ukuran:i.ukuran,warna:i.warna});
+    }
+
+    simpanData(KEY_PRODUK,p);
+
+    const transaksi = ambilData(KEY_TRANSAKSI);
+    transaksi.push({
+      id: Date.now(),
+      tanggal: new Date().toISOString(),
+      items,
+      total: totalBayar,
+      penerima: {nama,telp,alamat,kota},
+      pembayaran: bayar,
+      status: 'Menunggu Konfirmasi'
+    });
+    simpanData(KEY_TRANSAKSI,transaksi);
+
+    simpanData(KEY_KERANJANG,[]);
+    tutupCheckout();
+    perbaruiCounter();
+    renderProduk();
+    tampilkanToast('✅ Pesanan berhasil! Terima kasih!');
+
+    document.getElementById('namaPenerima').value='';
+    document.getElementById('telpPenerima').value='';
+    document.getElementById('alamatPenerima').value='';
+    document.getElementById('kotaPenerima').value='';
   }
+
   function tampilkanToast(m){
-    const t = document.createElement('div'); t.className='toast-in bg-white text-dark text-sm px-4 py-2 rounded mb-2'; t.innerText=m; document.getElementById('toastBox').appendChild(t); setTimeout(()=>t.remove(),2000);
+    const t = document.createElement('div'); t.className='toast-in bg-white text-dark text-sm px-4 py-2 rounded mb-2 font-medium'; t.innerText=m; document.getElementById('toastBox').appendChild(t); setTimeout(()=>t.remove(),2500);
   }
+
+  window.addEventListener('storage', (e) => {
+    if(e.key === KEY_PRODUK) { renderProduk(); renderKategori(); }
+  });
 
   seedData(); renderKategori(); renderProduk();
 </script>
