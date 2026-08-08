@@ -384,6 +384,9 @@
     document.getElementById('deskripsi').value = p.deskripsi || '';
     document.getElementById('btnSimpan').innerText = '✓ Perbarui Produk';
     document.getElementById('btnBatal').classList.remove('hidden');
+    
+    // === OTOMATIS GESER KE ATAS FORM SAAT KLIK UBAH ===
+    document.getElementById('nama').scrollIntoView({behavior:'smooth', block:'center'});
   }
 
   function batalEdit(){
