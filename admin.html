@@ -32,10 +32,10 @@
   .font-display { font-family: 'Sora', sans-serif; }
   .font-num { font-family: 'JetBrains Mono', monospace; }
   ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb { background: '#cbd5e1'; border-radius: 4px; }
   @keyframes slideIn { from { transform: translateY(120%); opacity:0; } to { transform: translateY(0); opacity:1; } }
   .toast-in { animation: slideIn .3s ease; }
-  .nav-item.active { background: #eff6ff; color: #2563EB; font-weight: 600; }
+  .nav-item.active { background: '#eff6ff'; color: '#2563EB'; font-weight: 600; }
   img { max-width: 100%; height: auto; }
   @media (max-width: 640px) {
     main { padding: 0.75rem !important; }
@@ -50,7 +50,6 @@
 <!-- === HALAMAN LOGIN === -->
 <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
   <form onsubmit="login(event)" class="bg-white w-full max-w-sm rounded-xl border border-gray-200 p-6">
-    <!-- ✅ TOMBOL KEMBALI KE TOKO DI HALAMAN LOGIN -->
     <a href="index.html" class="inline-flex items-center gap-1 text-sm text-primary hover:text-primaryDark mb-4">
       ← Kembali ke Toko
     </a>
@@ -213,20 +212,16 @@
   }
   function simpanData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
-  // ✅ PERBAIKAN PROSES LINK GAMBAR
   function prosesLinkGambar(link) {
     if (!link || link.trim() === '') return '';
     let l = link.trim();
-    // Ekstrak link asli dari Google
     if (l.includes('google.com/imgres')) {
       const cocok = l.match(/imgurl=([^&]+)/);
       if (cocok && cocok[1]) l = decodeURIComponent(cocok[1]);
     }
-    // Bersihkan parameter ukuran Google
     if (l.includes('googleusercontent.com') && l.includes('=w')) {
       l = l.substring(0, l.indexOf('=w'));
     }
-    // Pastikan protokol lengkap
     if (l.startsWith('//')) l = 'https:' + l;
     return l;
   }
@@ -237,7 +232,6 @@
     return 'data:image/svg+xml;base64,' + btoa(svg);
   }
 
-  // ✅ CEK LOGIN SAAT HALAMAN DIBUKA
   function cekLogin() {
     const status = localStorage.getItem(KEY_LOGIN);
     if (status === 'sudah_login') {
@@ -447,7 +441,6 @@
     grafikSudah = true;
   }
 
-  // ✅ JALANKAN CEK LOGIN SAAT HALAMAN DIBUKA
   cekLogin();
 
   window.addEventListener('storage', (e) => {
