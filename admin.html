@@ -113,8 +113,12 @@
             <input type="number" id="harga" placeholder="Harga (Rp)" class="bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm">
             <input type="text" id="kategori" placeholder="Kategori" class="bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm">
             <input type="number" id="stok" placeholder="Stok" class="bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm">
+            <input type="text" id="ukuran" placeholder="Ukuran (pisah dengan koma: S,M,L)" class="bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm">
+            <input type="text" id="warnaVar" placeholder="Warna (pisah dengan koma)" class="bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm">
           </div>
-          <input type="text" id="gambar" placeholder="URL Gambar (Opsional)" class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mb-3">
+          <input type="text" id="deskripsi" placeholder="Deskripsi Produk" class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mb-2">
+          <input type="text" id="gambar" placeholder="🔗 Tempel link gambar dari Google..." class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mb-1">
+          <p class="text-[10px] text-gray-400 mb-3">📌 Cara: Buka gambar di Google → Klik kanan → Salin alamat gambar → Tempel di atas</p>
           <div class="flex gap-2">
             <button onclick="simpanProduk()" id="btnSimpan" class="flex-1 bg-primary text-white py-2.5 rounded-lg font-display font-700 text-sm">+ Tambah Produk</button>
             <button onclick="batalEdit()" id="btnBatal" class="hidden px-4 py-2.5 rounded-lg border border-gray-200 text-sm">Batal</button>
@@ -188,6 +192,7 @@
 <script>
   const KEY_PRODUK = 'db_produk_tokohijau';
   const KEY_TRANSAKSI = 'db_transaksi_tokohijau';
+  const KEY_LOGIN = 'admin_login_status';
 
   function ambilData(key) {
     try { return JSON.parse(localStorage.getItem(key)) || []; }
@@ -195,11 +200,45 @@
   }
   function simpanData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
+  // ✅ PROSES LINK GAMBAR DARI GOOGLE
+  function prosesLinkGambar(link) {
+    if (!link || link.trim() === '') return '';
+    let l = link.trim();
+    // Ubah link Google Gambar biasa menjadi link langsung
+    if (l.includes('google.com/imgres')) {
+      const cocok = l.match(/imgurl=([^&]+)/);
+      if (cocok && cocok[1]) l = decodeURIComponent(cocok[1]);
+    }
+    // Hapus parameter ukuran dari link Google
+    if (l.includes('googleusercontent.com') && l.includes('=w')) {
+      l = l.substring(0, l.indexOf('=w'));
+    }
+    return l;
+  }
+
+  // ✅ GAMBAR OTOMATIS JIKA TIDAK ADA LINK
+  function placeholderImgAdmin(nama, warna='#e5e7eb') {
+    const huruf = (nama || '?').trim().charAt(0).toUpperCase();
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><rect width='40' height='40' fill='${warna}'/><text x='50%' y='55%' font-size='18' font-weight='bold' fill='white' text-anchor='middle'>${huruf}</text></svg>`;
+    return 'data:image/svg+xml;base64,' + btoa(svg);
+  }
+
+  // ✅ CEK SUDAH LOGIN ATAU BELUM
+  function cekLogin() {
+    const status = localStorage.getItem(KEY_LOGIN);
+    if (status === 'sudah_login') {
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('appScreen').classList.remove('hidden');
+      muatSemua();
+    }
+  }
+
   function login(e) {
     e.preventDefault();
     const u = document.getElementById('loginUser').value.trim();
     const p = document.getElementById('loginPass').value.trim();
     if(u==='admin' && p==='admin123'){
+      localStorage.setItem(KEY_LOGIN, 'sudah_login'); // ✅ Ingat login
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('appScreen').classList.remove('hidden');
       muatSemua();
@@ -208,9 +247,14 @@
     }
   }
 
+  // ✅ LOGOUT: HAPUS STATUS, KEMBALI KE HALAMAN LOGIN
   function logout(){
+    localStorage.removeItem(KEY_LOGIN); // Hapus tanda login
     document.getElementById('appScreen').classList.add('hidden');
     document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('loginUser').value='';
+    document.getElementById('loginPass').value='';
+    document.getElementById('loginError').classList.add('hidden');
   }
 
   function toggleSidebar(buka){
@@ -253,12 +297,6 @@
     renderTabelProduk(produk);
   }
 
-  function placeholderImgAdmin(nama, warna='#e5e7eb') {
-    const huruf = (nama || '?').trim().charAt(0).toUpperCase();
-    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><rect width='40' height='40' fill='${warna}'/><text x='50%' y='55%' font-size='18' font-weight='bold' fill='white' text-anchor='middle'>${huruf}</text></svg>`;
-    return 'data:image/svg+xml;base64,' + btoa(svg);
-  }
-
   function renderTabelProduk(list){
     const cari = document.getElementById('cariAdmin').value.toLowerCase();
     const hasil = list.filter(p=>p.nama.toLowerCase().includes(cari));
@@ -286,24 +324,29 @@
     const harga = parseInt(document.getElementById('harga').value);
     const kategori = document.getElementById('kategori').value.trim();
     const stok = parseInt(document.getElementById('stok').value);
-    const gambar = document.getElementById('gambar').value.trim();
+    const linkMentah = document.getElementById('gambar').value.trim();
+    const gambar = prosesLinkGambar(linkMentah); // ✅ Link diproses
+    const ukuran = document.getElementById('ukuran').value.trim();
+    const varianWarna = document.getElementById('warnaVar').value.trim();
+    const deskripsi = document.getElementById('deskripsi').value.trim();
 
-    if(!nama || !harga || !kategori || isNaN(stok)) return alert('Lengkapi data!');
+    if(!nama || !harga || !kategori || isNaN(stok)) return alert('Lengkapi data Nama, Harga, Kategori, dan Stok!');
 
     const produk = ambilData(KEY_PRODUK);
     if(idEdit){
       const idx = produk.findIndex(i=>i.id===idEdit);
-      produk[idx] = {...produk[idx], nama, harga, kategori, stok, gambar};
+      produk[idx] = {...produk[idx], nama, harga, kategori, stok, gambar, ukuran, varianWarna, deskripsi};
       idEdit = null;
       document.getElementById('btnSimpan').innerText = '+ Tambah Produk';
       document.getElementById('btnBatal').classList.add('hidden');
     }else{
       const warna = '#' + Math.floor(Math.random()*16777215).toString(16);
-      produk.push({id:Date.now(), nama, harga, kategori, stok, gambar, warna});
+      produk.push({id:Date.now(), nama, harga, kategori, stok, gambar, warna, ukuran, varianWarna, deskripsi});
     }
     simpanData(KEY_PRODUK, produk);
     muatSemua();
     document.querySelectorAll('#view-produk input').forEach(i=>i.value='');
+    tampilkanToast('✅ Produk berhasil disimpan!');
   }
 
   function editProduk(id){
@@ -314,6 +357,9 @@
     document.getElementById('kategori').value = p.kategori;
     document.getElementById('stok').value = p.stok;
     document.getElementById('gambar').value = p.gambar || '';
+    document.getElementById('ukuran').value = p.ukuran || '';
+    document.getElementById('warnaVar').value = p.varianWarna || '';
+    document.getElementById('deskripsi').value = p.deskripsi || '';
     document.getElementById('btnSimpan').innerText = '✓ Perbarui Produk';
     document.getElementById('btnBatal').classList.remove('hidden');
   }
@@ -326,7 +372,7 @@
   }
 
   function hapusProduk(id){
-    if(!confirm('Yakin hapus?')) return;
+    if(!confirm('Yakin hapus produk ini?')) return;
     simpanData(KEY_PRODUK, ambilData(KEY_PRODUK).filter(i=>i.id!==id));
     muatSemua();
   }
@@ -372,7 +418,8 @@
     const nilaiHari = labelHari.map(d=>hari[d]);
     new Chart(document.getElementById('chartBar'),{
       type:'bar',
-      data:{labels:labelHari,datasets:[{label:'Pendapatan',data:nilaiHari,backgroundColor:'#2563EB'}]}
+      data:{labels:labelHari,datasets:[{label:'Pendapatan',data:nilaiHari,backgroundColor:'#2563EB'}]},
+      options:{responsive:true,maintainAspectRatio:false}
     });
 
     const jml = {};
@@ -381,13 +428,25 @@
     const jumlahBrg = Object.values(jml);
     new Chart(document.getElementById('chartPie'),{
       type:'doughnut',
-      data:{labels:namaBrg,datasets:[{data:jumlahBrg,backgroundColor:['#2563EB','#16a34a','#d97706','#db2777','#7c3aed']}]}
+      data:{labels:namaBrg,datasets:[{data:jumlahBrg,backgroundColor:['#2563EB','#16a34a','#d97706','#db2777','#7c3aed']}]},
+      options:{responsive:true,maintainAspectRatio:false}
     });
     grafikSudah = true;
   }
 
+  function tampilkanToast(m){
+    const t = document.createElement('div'); t.className='toast-in bg-white text-dark text-sm px-4 py-2 rounded mb-2 font-medium'; t.innerText=m; document.getElementById('toastBox').appendChild(t); setTimeout(()=>t.remove(),2500);
+  }
+
+  // ✅ Otomatis cek login saat halaman dibuka
+  cekLogin();
+
   window.addEventListener('storage', (e) => {
-    if (e.key === KEY_PRODUK || e.key === KEY_TRANSAKSI) { muatSemua(); renderLaporan(); grafikSudah=false; }
+    if (e.key === KEY_PRODUK || e.key === KEY_TRANSAKSI) { 
+      muatSemua(); 
+      renderLaporan(); 
+      grafikSudah=false; 
+    }
   });
 </script>
 </body>
