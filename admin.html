@@ -13,8 +13,8 @@
     theme: {
       extend: {
         colors: {
-          primary: '#2563EB',
-          primaryDark: '#1d4ed8',
+          primary: '#ff2d55',
+          primaryDark: '#e02047',
           hijau: '#16a34a',
           amber: '#d97706'
         },
@@ -35,7 +35,7 @@
   ::-webkit-scrollbar-thumb { background: '#cbd5e1'; border-radius: 4px; }
   @keyframes slideIn { from { transform: translateY(120%); opacity:0; } to { transform: translateY(0); opacity:1; } }
   .toast-in { animation: slideIn .3s ease; }
-  .nav-item.active { background: '#eff6ff'; color: '#2563EB'; font-weight: 600; }
+  .nav-item.active { background: '#fff0f5'; color: '#ff2d55'; font-weight: 600; }
   img { max-width: 100%; height: auto; }
   @media (max-width: 640px) {
     main { padding: 0.75rem !important; }
@@ -129,8 +129,8 @@
             <input type="text" id="warnaVar" placeholder="Warna (pisah dengan koma)" class="bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm">
           </div>
           <input type="text" id="deskripsi" placeholder="Deskripsi Produk" class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mb-2">
-          <input type="text" id="gambar" placeholder="🔗 Tempel link gambar dari Google..." class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mb-1">
-          <p class="text-[10px] text-gray-400 mb-3">📌 Cara: Buka gambar → Klik kanan → Salin alamat gambar → Tempel di atas</p>
+          <input type="text" id="gambar" placeholder="🔗 Tempel link gambar... (Kosongkan = gambar otomatis)" class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mb-1">
+          <p class="text-[10px] text-gray-400 mb-3">📌 Biarkan kosong → sistem membuatkan gambar otomatis berwarna</p>
           <div class="flex gap-2">
             <button onclick="simpanProduk()" id="btnSimpan" class="flex-1 bg-primary text-white py-2.5 rounded-lg font-display font-700 text-sm">+ Tambah Produk</button>
             <button onclick="batalEdit()" id="btnBatal" class="hidden px-4 py-2.5 rounded-lg border border-gray-200 text-sm">Batal</button>
@@ -202,6 +202,7 @@
 <div id="toastBox" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50"></div>
 
 <script>
+  // === NAMA DATABASE SAMA DENGAN index.html ===
   const KEY_PRODUK = 'db_produk_tokohijau';
   const KEY_TRANSAKSI = 'db_transaksi_tokohijau';
   const KEY_LOGIN = 'admin_login_status';
@@ -212,24 +213,12 @@
   }
   function simpanData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
-  function prosesLinkGambar(link) {
-    if (!link || link.trim() === '') return '';
-    let l = link.trim();
-    if (l.includes('google.com/imgres')) {
-      const cocok = l.match(/imgurl=([^&]+)/);
-      if (cocok && cocok[1]) l = decodeURIComponent(cocok[1]);
-    }
-    if (l.includes('googleusercontent.com') && l.includes('=w')) {
-      l = l.substring(0, l.indexOf('=w'));
-    }
-    if (l.startsWith('//')) l = 'https:' + l;
-    return l;
-  }
-
-  function placeholderImgAdmin(nama, warna='#e5e7eb') {
-    const huruf = (nama || '?').trim().charAt(0).toUpperCase();
-    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><rect width='40' height='40' fill='${warna}'/><text x='50%' y='55%' font-size='18' font-weight='bold' fill='white' text-anchor='middle'>${huruf}</text></svg>`;
-    return 'data:image/svg+xml;base64,' + btoa(svg);
+  // === BUAT GAMBAR OTOMATIS SAMA DENGAN index.html ===
+  function buatGambarProduk(inisial, warnaLatar) {
+    const huruf = (inisial||'?').trim().charAt(0).toUpperCase();
+    const warna = warnaLatar || '#ff2d55';
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect width="400" height="400" fill="${warna}"/><text x="200" y="240" font-size="180" font-weight="bold" fill="white" text-anchor="middle">${huruf}</text></svg>`;
+    return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
   }
 
   function cekLogin() {
@@ -308,14 +297,17 @@
     const cari = document.getElementById('cariAdmin').value.toLowerCase();
     const hasil = list.filter(p=>p.nama.toLowerCase().includes(cari));
     document.getElementById('tabelProduk').innerHTML = hasil.map(p=>{
-      const tampilGambar = p.gambar || placeholderImgAdmin(p.nama, p.warna);
+      // === GAMBAR SAMA DENGAN index.html ===
+      const tampilGambar = p.gambar && p.gambar.trim() !== '' 
+        ? p.gambar 
+        : buatGambarProduk(p.nama, p.warnaLatar||'#ff2d55');
       return `
       <tr class="border-b border-gray-100">
         <td class="py-2">
-          <img src="${tampilGambar}" onerror="this.src='${placeholderImgAdmin(p.nama)}'" class="w-8 h-8 rounded object-cover inline-block mr-2" loading="lazy">
+          <img src="${tampilGambar}" onerror="this.src='${buatGambarProduk(p.nama)}'" class="w-8 h-8 rounded object-cover inline-block mr-2" loading="lazy">
           ${p.nama}
         </td>
-        <td>Rp ${p.harga.toLocaleString()}</td>
+        <td>Rp ${p.harga.toLocaleString('id-ID')}</td>
         <td>${p.stok}</td>
         <td class="flex gap-1">
           <button onclick="editProduk(${p.id})" class="bg-hijau text-white px-2 rounded text-xs">Ubah</button>
@@ -331,24 +323,35 @@
     const harga = parseInt(document.getElementById('harga').value);
     const kategori = document.getElementById('kategori').value.trim();
     const stok = parseInt(document.getElementById('stok').value);
-    const linkMentah = document.getElementById('gambar').value.trim();
-    const gambar = prosesLinkGambar(linkMentah);
+    const gambar = document.getElementById('gambar').value.trim();
     const ukuran = document.getElementById('ukuran').value.trim();
     const varianWarna = document.getElementById('warnaVar').value.trim();
     const deskripsi = document.getElementById('deskripsi').value.trim();
 
-    if(!nama || !harga || !kategori || isNaN(stok)) return alert('Lengkapi data Nama, Harga, Kategori, dan Stok!');
+    if(!nama || !harga || !kategori || isNaN(stok) || stok<0) return alert('Lengkapi data Nama, Harga, Kategori, dan Stok!');
 
     const produk = ambilData(KEY_PRODUK);
     if(idEdit){
+      // === EDIT PRODUK ===
       const idx = produk.findIndex(i=>i.id===idEdit);
-      produk[idx] = {...produk[idx], nama, harga, kategori, stok, gambar, ukuran, varianWarna, deskripsi};
+      produk[idx] = {
+        ...produk[idx], 
+        nama, harga, kategori, stok, 
+        gambar, ukuran, varianWarna, deskripsi
+      };
       idEdit = null;
       document.getElementById('btnSimpan').innerText = '+ Tambah Produk';
       document.getElementById('btnBatal').classList.add('hidden');
     }else{
-      const warna = '#' + Math.floor(Math.random()*16777215).toString(16);
-      produk.push({id:Date.now(), nama, harga, kategori, stok, gambar, warna, ukuran, varianWarna, deskripsi});
+      // === TAMBAH PRODUK BARU ===
+      const warnaLatar = '#' + Math.floor(Math.random()*16777215).toString(16);
+      produk.push({
+        id: Date.now(), 
+        nama, harga, kategori, stok, 
+        gambar, ukuran, varianWarna, deskripsi,
+        inisial: nama.charAt(0).toUpperCase(),
+        warnaLatar: warnaLatar
+      });
     }
     simpanData(KEY_PRODUK, produk);
     muatSemua();
@@ -425,7 +428,7 @@
     const nilaiHari = labelHari.map(d=>hari[d]);
     new Chart(document.getElementById('chartBar'),{
       type:'bar',
-      data:{labels:labelHari,datasets:[{label:'Pendapatan',data:nilaiHari,backgroundColor:'#2563EB'}]},
+      data:{labels:labelHari,datasets:[{label:'Pendapatan',data:nilaiHari,backgroundColor:'#ff2d55'}]},
       options:{responsive:true,maintainAspectRatio:false}
     });
 
@@ -435,7 +438,7 @@
     const jumlahBrg = Object.values(jml);
     new Chart(document.getElementById('chartPie'),{
       type:'doughnut',
-      data:{labels:namaBrg,datasets:[{data:jumlahBrg,backgroundColor:['#2563EB','#16a34a','#d97706','#db2777','#7c3aed']}]},
+      data:{labels:namaBrg,datasets:[{data:jumlahBrg,backgroundColor:['#ff2d55','#16a34a','#d97706','#db2777','#7c3aed']}]},
       options:{responsive:true,maintainAspectRatio:false}
     });
     grafikSudah = true;
@@ -443,11 +446,12 @@
 
   cekLogin();
 
+  // === SINKRON OTOMATIS DENGAN index.html ===
   window.addEventListener('storage', (e) => {
     if (e.key === KEY_PRODUK || e.key === KEY_TRANSAKSI) { 
       muatSemua(); 
       renderLaporan(); 
-      grafikSudah=false; 
+      grafikSudah = false; 
     }
   });
 </script>
