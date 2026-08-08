@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Panel Admin - Toko Online</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
@@ -36,12 +36,24 @@
   @keyframes slideIn { from { transform: translateY(120%); opacity:0; } to { transform: translateY(0); opacity:1; } }
   .toast-in { animation: slideIn .3s ease; }
   .nav-item.active { background: #eff6ff; color: #2563EB; font-weight: 600; }
+  img { max-width: 100%; height: auto; }
+  @media (max-width: 640px) {
+    main { padding: 0.75rem !important; }
+    .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    table { font-size: 0.7rem; }
+    input, button { font-size: 0.875rem !important; }
+  }
 </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
 
+<!-- === HALAMAN LOGIN === -->
 <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
   <form onsubmit="login(event)" class="bg-white w-full max-w-sm rounded-xl border border-gray-200 p-6">
+    <!-- ✅ TOMBOL KEMBALI KE TOKO DI HALAMAN LOGIN -->
+    <a href="index.html" class="inline-flex items-center gap-1 text-sm text-primary hover:text-primaryDark mb-4">
+      ← Kembali ke Toko
+    </a>
     <div class="flex flex-col items-center mb-5">
       <div class="w-11 h-11 rounded-xl bg-primary flex items-center justify-center text-white font-display font-800 text-lg mb-2">⚡</div>
       <h1 class="font-display font-700 text-gray-900">Login Admin</h1>
@@ -63,6 +75,7 @@
   </form>
 </div>
 
+<!-- === HALAMAN ADMIN === -->
 <div id="appScreen" class="hidden flex min-h-screen">
   <div id="overlay" onclick="toggleSidebar(false)" class="hidden fixed inset-0 bg-black/40 z-30 md:hidden"></div>
   <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 -translate-x-full md:translate-x-0 transition-transform flex flex-col">
@@ -108,7 +121,7 @@
       <section id="view-produk" class="view hidden space-y-4">
         <div class="bg-white p-4 rounded-xl border border-gray-200">
           <h3 class="font-display font-700 text-sm mb-3">Kelola Produk</h3>
-          <div class="grid grid-cols-2 gap-2 mb-2">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
             <input type="text" id="nama" placeholder="Nama Produk" class="bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm">
             <input type="number" id="harga" placeholder="Harga (Rp)" class="bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm">
             <input type="text" id="kategori" placeholder="Kategori" class="bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm">
@@ -118,7 +131,7 @@
           </div>
           <input type="text" id="deskripsi" placeholder="Deskripsi Produk" class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mb-2">
           <input type="text" id="gambar" placeholder="🔗 Tempel link gambar dari Google..." class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mb-1">
-          <p class="text-[10px] text-gray-400 mb-3">📌 Cara: Buka gambar di Google → Klik kanan → Salin alamat gambar → Tempel di atas</p>
+          <p class="text-[10px] text-gray-400 mb-3">📌 Cara: Buka gambar → Klik kanan → Salin alamat gambar → Tempel di atas</p>
           <div class="flex gap-2">
             <button onclick="simpanProduk()" id="btnSimpan" class="flex-1 bg-primary text-white py-2.5 rounded-lg font-display font-700 text-sm">+ Tambah Produk</button>
             <button onclick="batalEdit()" id="btnBatal" class="hidden px-4 py-2.5 rounded-lg border border-gray-200 text-sm">Batal</button>
@@ -200,30 +213,31 @@
   }
   function simpanData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
-  // ✅ PROSES LINK GAMBAR DARI GOOGLE
+  // ✅ PERBAIKAN PROSES LINK GAMBAR
   function prosesLinkGambar(link) {
     if (!link || link.trim() === '') return '';
     let l = link.trim();
-    // Ubah link Google Gambar biasa menjadi link langsung
+    // Ekstrak link asli dari Google
     if (l.includes('google.com/imgres')) {
       const cocok = l.match(/imgurl=([^&]+)/);
       if (cocok && cocok[1]) l = decodeURIComponent(cocok[1]);
     }
-    // Hapus parameter ukuran dari link Google
+    // Bersihkan parameter ukuran Google
     if (l.includes('googleusercontent.com') && l.includes('=w')) {
       l = l.substring(0, l.indexOf('=w'));
     }
+    // Pastikan protokol lengkap
+    if (l.startsWith('//')) l = 'https:' + l;
     return l;
   }
 
-  // ✅ GAMBAR OTOMATIS JIKA TIDAK ADA LINK
   function placeholderImgAdmin(nama, warna='#e5e7eb') {
     const huruf = (nama || '?').trim().charAt(0).toUpperCase();
     const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><rect width='40' height='40' fill='${warna}'/><text x='50%' y='55%' font-size='18' font-weight='bold' fill='white' text-anchor='middle'>${huruf}</text></svg>`;
     return 'data:image/svg+xml;base64,' + btoa(svg);
   }
 
-  // ✅ CEK SUDAH LOGIN ATAU BELUM
+  // ✅ CEK LOGIN SAAT HALAMAN DIBUKA
   function cekLogin() {
     const status = localStorage.getItem(KEY_LOGIN);
     if (status === 'sudah_login') {
@@ -238,7 +252,7 @@
     const u = document.getElementById('loginUser').value.trim();
     const p = document.getElementById('loginPass').value.trim();
     if(u==='admin' && p==='admin123'){
-      localStorage.setItem(KEY_LOGIN, 'sudah_login'); // ✅ Ingat login
+      localStorage.setItem(KEY_LOGIN, 'sudah_login');
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('appScreen').classList.remove('hidden');
       muatSemua();
@@ -247,9 +261,8 @@
     }
   }
 
-  // ✅ LOGOUT: HAPUS STATUS, KEMBALI KE HALAMAN LOGIN
   function logout(){
-    localStorage.removeItem(KEY_LOGIN); // Hapus tanda login
+    localStorage.removeItem(KEY_LOGIN);
     document.getElementById('appScreen').classList.add('hidden');
     document.getElementById('loginScreen').classList.remove('hidden');
     document.getElementById('loginUser').value='';
@@ -305,7 +318,7 @@
       return `
       <tr class="border-b border-gray-100">
         <td class="py-2">
-          <img src="${tampilGambar}" onerror="this.src='${placeholderImgAdmin(p.nama)}'" class="w-8 h-8 rounded object-cover inline-block mr-2">
+          <img src="${tampilGambar}" onerror="this.src='${placeholderImgAdmin(p.nama)}'" class="w-8 h-8 rounded object-cover inline-block mr-2" loading="lazy">
           ${p.nama}
         </td>
         <td>Rp ${p.harga.toLocaleString()}</td>
@@ -325,7 +338,7 @@
     const kategori = document.getElementById('kategori').value.trim();
     const stok = parseInt(document.getElementById('stok').value);
     const linkMentah = document.getElementById('gambar').value.trim();
-    const gambar = prosesLinkGambar(linkMentah); // ✅ Link diproses
+    const gambar = prosesLinkGambar(linkMentah);
     const ukuran = document.getElementById('ukuran').value.trim();
     const varianWarna = document.getElementById('warnaVar').value.trim();
     const deskripsi = document.getElementById('deskripsi').value.trim();
@@ -346,7 +359,7 @@
     simpanData(KEY_PRODUK, produk);
     muatSemua();
     document.querySelectorAll('#view-produk input').forEach(i=>i.value='');
-    tampilkanToast('✅ Produk berhasil disimpan!');
+    alert('✅ Produk berhasil disimpan!');
   }
 
   function editProduk(id){
@@ -434,11 +447,7 @@
     grafikSudah = true;
   }
 
-  function tampilkanToast(m){
-    const t = document.createElement('div'); t.className='toast-in bg-white text-dark text-sm px-4 py-2 rounded mb-2 font-medium'; t.innerText=m; document.getElementById('toastBox').appendChild(t); setTimeout(()=>t.remove(),2500);
-  }
-
-  // ✅ Otomatis cek login saat halaman dibuka
+  // ✅ JALANKAN CEK LOGIN SAAT HALAMAN DIBUKA
   cekLogin();
 
   window.addEventListener('storage', (e) => {
