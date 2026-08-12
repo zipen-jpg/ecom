@@ -597,6 +597,70 @@
       renderLaporan(); 
       grafikSudah = false; 
     }
+function muatDataPembeli() {
+  const trans = ambilData(KEY_TRANSAKSI).reverse();
+  const labelStatus = {
+    menunggu: 'Menunggu Konfirmasi',
+    diproses: 'Sedang Diproses',
+    dikirim: 'Sedang Dikirim',
+    perjalanan: 'Dalam Perjalanan',
+    sampaiditujuan: 'Sudah Sampai di Tujuan',
+    selesai: 'Pesanan Selesai',
+    dibatalkan: 'Dibatalkan'
+  };
+  document.getElementById('daftarPembeli').innerHTML = trans.length? trans.map((t, idx)=>`
+    <div class="border-b py-3">
+      <p class="font-semibold">👤 ${t.penerima?.nama||'Tanpa Nama'}</p>
+      <p class="text-sm text-gray-600">📞 ${t.penerima?.telp||'-'}</p>
+      <p class="text-sm text-gray-600">📍 ${t.penerima?.alamat||'-'} ${t.penerima?.kodePos||''}</p>
+      <p class="text-sm mt-1">📦 ${t.items.map(i=>i.nama+' × '+i.qty).join(', ')}</p>
+      <p class="font-bold text-primary mt-1">Total: Rp ${(t.total||0).toLocaleString('id-ID')} | 💳 ${t.pembayaran||'-'}</p>
+      
+      <!-- === BAGIAN UBAH STATUS === -->
+      <div class="mt-2 p-2 bg-gray-50 rounded-lg border border-gray-100">
+        <p class="text-sm font-semibold mb-1">Status Saat Ini: 
+          <span class="text-primary">${labelStatus[t.status] || 'Menunggu Konfirmasi'}</span>
+        </p>
+        <p class="text-xs text-gray-500 mb-2">Lokasi Terkini: ${t.lokasiTerkini || 'Menunggu konfirmasi penjual'}</p>
+        <select onchange="ubahStatusPesanan(${idx}, this.value)" class="text-sm mb-2">
+          <option value="menunggu" ${t.status==='menunggu'?'selected':''}>Menunggu Konfirmasi</option>
+          <option value="diproses" ${t.status==='diproses'?'selected':''}>Sedang Diproses</option>
+          <option value="dikirim" ${t.status==='dikirim'?'selected':''}>Sedang Dikirim</option>
+          <option value="perjalanan" ${t.status==='perjalanan'?'selected':''}>Dalam Perjalanan</option>
+          <option value="sampaiditujuan" ${t.status==='sampaiditujuan'?'selected':''}>Sudah Sampai di Tujuan</option>
+          <option value="selesai" ${t.status==='selesai'?'selected':''}>Pesanan Selesai</option>
+          <option value="dibatalkan" ${t.status==='dibatalkan'?'selected':''}>Dibatalkan</option>
+        </select>
+        <input type="text" id="lokasi-${idx}" value="${t.lokasiTerkini||''}" placeholder="Masukkan lokasi/keterangan terkini" class="text-sm">
+        <button onclick="simpanLokasi(${idx})" class="btn-utama text-xs py-1 px-2 mt-2">✅ Simpan Lokasi & Status</button>
+      </div>
+    </div>
+  `).join('') : '<p class="text-gray-400 text-sm">Belum ada pesanan.</p>';
+}
+
+// === FUNGSI UBAH STATUS ===
+function ubahStatusPesanan(idx, statusBaru) {
+  const trans = ambilData(KEY_TRANSAKSI);
+  trans[idx].status = statusBaru;
+  trans[idx].waktuPembaruan = new Date().toISOString();
+  simpanData(KEY_TRANSAKSI, trans);
+}
+
+// === FUNGSI SIMPAN LOKASI ===
+function simpanLokasi(idx) {
+  const lokasiBaru = document.getElementById(`lokasi-${idx}`).value.trim();
+  if (!lokasiBaru) return alert('⚠️ Masukkan lokasi/keterangan terlebih dahulu!');
+  
+  const trans = ambilData(KEY_TRANSAKSI);
+  trans[idx].lokasiTerkini = lokasiBaru;
+  trans[idx].waktuPembaruan = new Date().toISOString();
+  simpanData(KEY_TRANSAKSI, trans);
+  
+  alert('✅ Status & lokasi diperbarui! Pembeli bisa melihat perubahannya sekarang.');
+  muatDataPembeli(); // Segar tampilan admin
+  muatDashboard(); // Segar juga dashboard
+}
+
   });
 </script>
 </body>
