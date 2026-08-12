@@ -15,7 +15,14 @@
           primary: '#ff2d55',
           secondary: '#00c48c',
           gelap: '#f9f9f9',
-          kartu: '#ffffff'
+          kartu: '#ffffff',
+          status: {
+            menunggu: '#f59e0b',
+            diproses: '#3b82f6',
+            dikirim: '#8b5cf6',
+            selesai: '#00c48c',
+            dibatalkan: '#ef4444'
+          }
         },
         fontFamily: {
           display: ['Sora', 'sans-serif'],
@@ -58,11 +65,21 @@
   .video-container.show { display: block; }
   .video-container video { width: 100%; display: block; }
   .bg-kartu { background: #ffffff; border: 1px solid #eee; }
+  .tab-bawah { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #eee; display: flex; justify-content: space-around; padding: 8px 0; z-index: 40; }
+  .tab-bawah button { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: #888; background: none; border: none; cursor: pointer; }
+  .tab-bawah button.aktif { color: #ff2d55; }
+  .tab-bawah button span { font-size: 18px; }
+  .status-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .status-menunggu { background: #fff7ed; color: #f59e0b; }
+  .status-diproses { background: #eff6ff; color: #3b82f6; }
+  .status-dikirim { background: #f5f3ff; color: #8b5cf6; }
+  .status-selesai { background: #f0fdf4; color: #00c48c; }
+  .status-dibatalkan { background: #fef2f2; color: #ef4444; }
 </style>
 </head>
 <body>
 
-<!-- === HALAMAN UTAMA === -->
+<!-- === HALAMAN TOKO === -->
 <div id="halamanToko" class="pb-20">
   <header class="sticky top-0 bg-white/90 backdrop-blur-sm px-4 py-3 z-30 border-b border-gray-100">
     <div class="flex items-center justify-between mb-3">
@@ -89,6 +106,18 @@
   </main>
 </div>
 
+<!-- === HALAMAN STATUS PESANAN === -->
+<div id="halamanStatus" class="hidden pb-24">
+  <header class="sticky top-0 bg-white/90 backdrop-blur-sm px-4 py-3 flex items-center gap-3 z-30 border-b border-gray-100">
+    <button onclick="kembaliKeToko()" class="text-xl text-gray-800">←</button>
+    <h1 class="font-display font-700 text-lg text-gray-800">📦 Status Pesanan</h1>
+  </header>
+  <div class="px-4 pt-3">
+    <div id="daftarPesanan"></div>
+    <p id="pesananKosong" class="text-center text-gray-400 py-12">Belum ada pesanan.<br>Yuk belanja sekarang!</p>
+  </div>
+</div>
+
 <!-- === HALAMAN DETAIL PRODUK === -->
 <div id="halamanDetail" class="hidden pb-24">
   <header class="sticky top-0 bg-white/90 backdrop-blur-sm px-4 py-3 flex items-center gap-3 z-30 border-b border-gray-100">
@@ -98,7 +127,6 @@
   <div class="px-4 pt-4">
     <div id="gambarDetail" class="w-full aspect-square rounded-xl overflow-hidden mb-4 bg-gray-100 flex items-center justify-center"></div>
     
-    <!-- 🆕 TOMBOL & PEMUTAR VIDEO PRODUK -->
     <button id="tombolVideo" onclick="putarVideo()" class="video-btn">
       ▶️ Tonton Video Produk
     </button>
@@ -228,6 +256,16 @@
   </div>
 </div>
 
+<!-- === NAVIGASI BAWAH === -->
+<div class="tab-bawah">
+  <button onclick="bukaHalamanUtama()" id="tabToko" class="aktif">
+    <span>🏠</span> Toko
+  </button>
+  <button onclick="bukaHalamanStatus()" id="tabStatus">
+    <span>📦</span> Pesanan
+  </button>
+</div>
+
 <script>
   const KEY_PRODUK = 'db_produk_tokohijau';
   const KEY_TRANSAKSI = 'db_transaksi_tokohijau';
@@ -238,37 +276,33 @@
   let warnaTerpilih = null;
   let metodeBayarTerpilih = 'COD';
   let sumberCheckout = '';
-  let videoTerbuka = false; // Status pemutar video
+  let videoTerbuka = false;
 
-  // Data lengkap dengan deskripsi, ukuran, warna, dan tautan video
+  // Data contoh produk
   const dataContoh = [
     { 
       id:1, nama:'Kaos Polos Combed', harga:75000, kategori:'Fashion', stok:99, 
       deskripsi:'Kaos polos berkualitas tinggi dari bahan katun combed 30s. Lembut, menyerap keringat, nyaman dipakai sehari-hari. Jahitan rapi, awet tidak mudah melar. Tersedia berbagai ukuran dan warna.', 
       ukuran:'S,M,L,XL,XXL', varianWarna:'Putih,Hitam,Merah,Biru,Navy', 
-      inisial:'K', warnaLatar:'#ff3b30', gambar:'',
-      video: '' // Masukkan link video produk di sini
+      inisial:'K', warnaLatar:'#ff3b30', gambar:'', video:''
     },
     { 
       id:2, nama:'Sepatu Sneakers Urban', harga:249000, kategori:'Fashion', stok:50, 
       deskripsi:'Sepatu sneakers model terbaru desain modern. Bahan kulit sintetis berkualitas, sol karet empuk dan anti-slip. Ringan dipakai, cocok untuk jalan-jalan atau olahraga.', 
       ukuran:'38,39,40,41,42,43,44', varianWarna:'Putih,Hitam,Putih-Hitam,Biru Muda', 
-      inisial:'S', warnaLatar:'#00c48c', gambar:'',
-      video: '' // Masukkan link video produk di sini
+      inisial:'S', warnaLatar:'#00c48c', gambar:'', video:''
     },
     { 
       id:3, nama:'Earphone Bluetooth', harga:125000, kategori:'Elektronik', stok:30, 
       deskripsi:'Earphone nirkabel suara jernih dan bass mantap. Mendukung panggilan telepon dengan mikrofon. Baterai tahan hingga 6 jam pemakaian. Koneksi stabil jarak 10 meter.', 
       ukuran:'Standar', varianWarna:'Hitam,Putih,Biru,Merah', 
-      inisial:'E', warnaLatar:'#007aff', gambar:'',
-      video: '' // Masukkan link video produk di sini
+      inisial:'E', warnaLatar:'#007aff', gambar:'', video:''
     },
     { 
       id:4, nama:'Powerbank 10000mAh', harga:99000, kategori:'Aksesoris', stok:45, 
       deskripsi:'Powerbank kapasitas besar 10000mAh. Dilengkapi 2 port USB bisa cas 2 HP sekaligus. Mendukung pengisian cepat. Indikator daya LED. Aman dan awet.', 
       ukuran:'Standar', varianWarna:'Putih,Hitam,Merah,Emas,Perak', 
-      inisial:'P', warnaLatar:'#ff9500', gambar:'',
-      video: '' // Masukkan link video produk di sini
+      inisial:'P', warnaLatar:'#ff9500', gambar:'', video:''
     }
   ];
 
@@ -336,6 +370,60 @@
     }).join('');
   }
 
+  // === NAVIGASI BAWAH ===
+  function bukaHalamanUtama() {
+    sembunyikanSemuaHalaman();
+    document.getElementById('halamanToko').classList.remove('hidden');
+    document.getElementById('tabToko').classList.add('aktif');
+    document.getElementById('tabStatus').classList.remove('aktif');
+  }
+
+  function bukaHalamanStatus() {
+    sembunyikanSemuaHalaman();
+    document.getElementById('halamanStatus').classList.remove('hidden');
+    document.getElementById('tabStatus').classList.add('aktif');
+    document.getElementById('tabToko').classList.remove('aktif');
+    tampilStatusPesanan();
+  }
+
+  function kembaliKeToko() {
+    bukaHalamanUtama();
+  }
+
+  // === TAMPILAN STATUS PESANAN ===
+  function tampilStatusPesanan() {
+    const transaksi = ambilData(KEY_TRANSAKSI).reverse();
+    document.getElementById('pesananKosong').classList.toggle('hidden', transaksi.length>0);
+    
+    const labelStatus = {
+      menunggu: 'Menunggu Konfirmasi',
+      diproses: 'Sedang Diproses',
+      dikirim: 'Sedang Dikirim',
+      selesai: 'Selesai',
+      dibatalkan: 'Dibatalkan'
+    };
+
+    document.getElementById('daftarPesanan').innerHTML = transaksi.map(t=>{
+      const sts = t.status || 'menunggu';
+      return `
+      <div class="bg-white rounded-xl border border-gray-200 p-4 mb-3">
+        <div class="flex justify-between items-start mb-2">
+          <div>
+            <p class="text-xs text-gray-500">${new Date(t.tanggal).toLocaleDateString('id-ID')} ${new Date(t.tanggal).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})}</p>
+            <p class="font-semibold text-sm mt-1">${t.items.map(i=>i.nama).join(', ')}</p>
+          </div>
+          <span class="status-badge status-${sts}">${labelStatus[sts]}</span>
+        </div>
+        <div class="text-sm text-gray-600 space-y-1 border-t border-gray-100 pt-2">
+          <p>👤 ${t.penerima?.nama||'-'}</p>
+          <p>📍 ${t.penerima?.alamat||'-'} ${t.penerima?.kodePos||''}</p>
+          <p>💳 ${t.pembayaran||'-'}</p>
+          <p class="font-bold text-primary">Total: Rp ${t.total.toLocaleString('id-ID')}</p>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
   function bukaDetail(id) {
     const semuaProduk = ambilProduk();
     produkTerpilih = semuaProduk.find(p=>p.id===id);
@@ -345,7 +433,6 @@
     document.getElementById('namaDetail').textContent = produkTerpilih.nama;
     document.getElementById('hargaDetail').textContent = 'Rp ' + produkTerpilih.harga.toLocaleString('id-ID');
     
-    // Tampilkan Stok
     if (produkTerpilih.stok > 0) {
       document.getElementById('stokDetail').textContent = `Stok Tersedia: ${produkTerpilih.stok}`;
       document.getElementById('stokDetail').className = 'stok-info';
@@ -358,18 +445,15 @@
       document.getElementById('btnBeliSekarang').classList.add('opacity-50');
     }
 
-    // Tampilkan Deskripsi
     document.getElementById('deskripsiDetail').textContent = produkTerpilih.deskripsi && produkTerpilih.deskripsi.trim() !== '' 
       ? produkTerpilih.deskripsi 
       : 'Belum ada deskripsi untuk produk ini.';
 
-    // Tampilkan Gambar
     const gambar = produkTerpilih.gambar && produkTerpilih.gambar.trim() !== '' 
       ? produkTerpilih.gambar 
       : buatGambarProduk(produkTerpilih.inisial, produkTerpilih.warnaLatar);
     document.getElementById('gambarDetail').innerHTML = `<img src="${gambar}" class="w-full h-full object-cover" alt="${produkTerpilih.nama}" onerror="this.parentElement.innerHTML='<div class=\\'w-full h-full flex items-center justify-center text-8xl\\'>${produkTerpilih.inisial||'?'}</div>'">`;
 
-    // 🆕 SET LINK VIDEO PRODUK
     const sumberVideo = document.querySelector('#videoProduk source');
     const tombolVideo = document.getElementById('tombolVideo');
     const kotakVideo = document.getElementById('kotakVideo');
@@ -386,13 +470,11 @@
     }
     videoTerbuka = false;
 
-    // UKURAN SESUAI BARANG
     const daftarUkuran = (produkTerpilih.ukuran||'Standar').split(',').map(s=>s.trim()).filter(s=>s);
     document.getElementById('pilihUkuran').innerHTML = daftarUkuran.map(u=>`<button onclick="pilihUkuran('${u}')">${u}</button>`).join('');
     ukuranTerpilih = daftarUkuran[0];
     sorotPilihan('pilihUkuran', ukuranTerpilih);
 
-    // WARNA SESUAI BARANG
     const daftarWarna = (produkTerpilih.varianWarna||'Standar').split(',').map(w=>w.trim()).filter(w=>w);
     document.getElementById('pilihWarna').innerHTML = daftarWarna.map(w=>`<button onclick="pilihWarna('${w}')">${w}</button>`).join('');
     warnaTerpilih = daftarWarna[0];
@@ -404,7 +486,6 @@
     document.getElementById('halamanDetail').classList.remove('hidden');
   }
 
-  // 🆕 FUNGSI PEMUTAR VIDEO
   function putarVideo() {
     const kotakVideo = document.getElementById('kotakVideo');
     const elemenVideo = document.getElementById('videoProduk');
@@ -425,12 +506,8 @@
   }
 
   function tutupDetail() {
-    // Hentikan video saat keluar halaman
     const elemenVideo = document.getElementById('videoProduk');
-    if (elemenVideo) {
-      elemenVideo.pause();
-      elemenVideo.currentTime = 0;
-    }
+    if (elemenVideo) { elemenVideo.pause(); elemenVideo.currentTime = 0; }
     document.getElementById('halamanDetail').classList.add('hidden');
     document.getElementById('halamanToko').classList.remove('hidden');
     produkTerpilih = null;
@@ -509,6 +586,7 @@
     document.getElementById('halamanDetail').classList.add('hidden');
     document.getElementById('halamanKeranjang').classList.add('hidden');
     document.getElementById('halamanCheckout').classList.add('hidden');
+    document.getElementById('halamanStatus').classList.add('hidden');
   }
 
   function tampilKeranjang() {
@@ -575,7 +653,6 @@
   function bukaCheckout() {
     const k = ambilKeranjang();
     if (!k.length) return alert('Keranjang masih kosong!');
-    // Cek stok semua barang di keranjang
     const semuaProduk = ambilProduk();
     for (const item of k) {
       const p = semuaProduk.find(x=>x.id===item.id);
@@ -634,7 +711,6 @@
     const items = window._pesananSaatIni;
     if (!items || !items.length) return alert('⚠️ Tidak ada pesanan!');
 
-    // CEK STOK SEBELUM KURANGI
     const semuaProduk = ambilProduk();
     for (const item of items) {
       const p = semuaProduk.find(x=>x.id===item.id);
@@ -643,58 +719,46 @@
       }
     }
 
-    // KURANGI STOK SETELAH BELI
+    // Kurangi stok
     items.forEach(item=>{
       const idx = semuaProduk.findIndex(x=>x.id===item.id);
-      if (idx >= 0) {
-        semuaProduk[idx].stok -= item.qty;
-      }
+      if (idx >= 0) { semuaProduk[idx].stok -= item.qty; }
     });
     simpanData(KEY_PRODUK, semuaProduk);
 
     const total = items.reduce((s,i)=>s + i.harga*i.qty,0);
 
-    // Simpan ke laporan transaksi
+    // Simpan transaksi dengan status awal
     const transaksi = ambilData(KEY_TRANSAKSI);
     transaksi.push({
       tanggal: new Date().toISOString(),
       items: items,
       total: total,
       penerima: { nama, telp, alamat, kodePos:pos },
-      pembayaran: metodeBayarTerpilih
+      pembayaran: metodeBayarTerpilih,
+      status: 'menunggu'
     });
-    simpanData(KEY_TRANSAKSI, transaksi);
+        simpanData(KEY_TRANSAKSI, transaksi);
 
-    // Kosongkan keranjang
-    if (sumberCheckout==='keranjang') {
+    // Kosongkan keranjang jika dari keranjang
+    if (sumberCheckout === 'keranjang') {
       simpanKeranjang([]);
       hitungJumlahKeranjang();
     }
 
-    alert(`✅ Pesanan Berhasil!\n\nTerima kasih ${nama}!\nMetode: ${metodeBayarTerpilih}\nTotal: Rp ${total.toLocaleString('id-ID')}\n\nStok telah diperbarui.`);
-    
-    // Kembali ke halaman utama
-    sembunyikanSemuaHalaman();
-    document.getElementById('halamanToko').classList.remove('hidden');
-    renderProduk(); // Perbarui tampilan stok
+    alert('✅ Pesanan berhasil dibuat! Terima kasih telah berbelanja.');
 
-    // Reset form
-    document.getElementById('namaPenerima').value='';
-    document.getElementById('telpPenerima').value='';
-    document.getElementById('alamatPenerima').value='';
-    document.getElementById('kodePos').value='';
-    window._pesananSaatIni = null;
+    // Kembali ke halaman status pesanan
+    sembunyikanSemuaHalaman();
+    bukaHalamanStatus();
   }
 
-  // Sinkronisasi otomatis jika admin ubah produk
-  window.addEventListener('storage', (e) => {
-    if (e.key === KEY_PRODUK) { renderProduk(); muatKategori(); }
+  // Inisialisasi saat halaman dimuat
+  document.addEventListener('DOMContentLoaded', function() {
+    muatKategori();
+    renderProduk();
+    hitungJumlahKeranjang();
   });
-
-  // Jalankan saat halaman dibuka
-  muatKategori();
-  renderProduk();
-  hitungJumlahKeranjang();
 </script>
 </body>
 </html>
