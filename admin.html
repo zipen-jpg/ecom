@@ -37,6 +37,23 @@
   .toast-in { animation: slideIn .3s ease; }
   .nav-item.active { background: '#fff0f5'; color: '#ff2d55'; font-weight: 600; }
   img { max-width: 100%; height: auto; }
+  /* PREVIEW UPLOAD */
+  .preview-box {
+    border: 2px dashed #e2e8f0;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .preview-box img, .preview-box video {
+    max-width: 100%;
+    max-height: 160px;
+    border-radius: 0.375rem;
+  }
   /* MODAL INFORMASI PEMBELI */
   .modal-latar { position: fixed; inset:0; background:rgba(0,0,0,0.5); z-index:50; display:flex; align-items:center; justify-content:center; padding:1rem; }
   .modal-kotak { background:white; border-radius:1rem; max-width:420px; width:100%; max-height:90vh; overflow-y:auto; }
@@ -132,9 +149,22 @@
             <input type="text" id="warnaVar" placeholder="Warna (pisah dengan koma)" class="bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm">
           </div>
           <input type="text" id="deskripsi" placeholder="Deskripsi Produk" class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mb-2">
-          <input type="text" id="gambar" placeholder="🔗 Tempel link gambar... (Kosongkan = gambar otomatis)" class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mb-1">
-          <input type="text" id="video" placeholder="🎬 Link Video Produk (opsional)" class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mb-1">
-          <p class="text-[10px] text-gray-400 mb-3">📌 Biarkan kosong → sistem membuatkan gambar otomatis berwarna</p>
+          
+          <!-- UPLOAD GAMBAR DARI GALERI -->
+          <label class="block text-xs font-medium text-gray-600 mb-1">🖼️ Upload Gambar Produk</label>
+          <input type="file" id="gambarUpload" accept="image/*" onchange="pratinjauGambar(this)" class="w-full text-sm text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-primary file:text-white">
+          <div id="kotakPratinjauGambar" class="preview-box text-gray-400 text-sm">Belum ada gambar</div>
+          
+          <!-- UPLOAD VIDEO DARI GALERI -->
+          <label class="block text-xs font-medium text-gray-600 mt-3 mb-1">🎬 Upload Video Produk (Opsional)</label>
+          <input type="file" id="videoUpload" accept="video/*" onchange="pratinjauVideo(this)" class="w-full text-sm text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-primary file:text-white">
+          <div id="kotakPratinjauVideo" class="preview-box text-gray-400 text-sm">Belum ada video</div>
+          
+          <!-- LINK CADANGAN (TETAP DIPERBOLEHKAN) -->
+          <input type="text" id="gambarLink" placeholder="🔗 Atau tempel link gambar..." class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mt-3 mb-1">
+          <input type="text" id="videoLink" placeholder="🎬 Atau tempel link video..." class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mb-1">
+          <p class="text-[10px] text-gray-400 mb-3">📌 Biarkan kosong → sistem membuatkan gambar otomatis</p>
+          
           <div class="flex gap-2">
             <button onclick="simpanProduk()" id="btnSimpan" class="flex-1 bg-primary text-white py-2.5 rounded-lg font-display font-700 text-sm">+ Tambah Produk</button>
             <button onclick="batalEdit()" id="btnBatal" class="hidden px-4 py-2.5 rounded-lg border border-gray-200 text-sm">Batal</button>
@@ -223,11 +253,47 @@
   const KEY_TRANSAKSI = 'db_transaksi_tokohijau';
   const KEY_LOGIN = 'admin_login_status';
 
+  // Variabel penyimpan file upload
+  let fileGambarBase64 = null;
+  let fileVideoBase64 = null;
+
   function ambilData(key) {
     try { return JSON.parse(localStorage.getItem(key)) || []; }
     catch(e) { return []; }
   }
   function simpanData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+
+  // === PRATINJAU UPLOAD GAMBAR ===
+  function pratinjauGambar(input) {
+    const kotak = document.getElementById('kotakPratinjauGambar');
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        fileGambarBase64 = e.target.result;
+        kotak.innerHTML = `<img src="${fileGambarBase64}" alt="Pratinjau Gambar">`;
+      }
+      reader.readAsDataURL(input.files[0]);
+    } else {
+      fileGambarBase64 = null;
+      kotak.innerHTML = 'Belum ada gambar';
+    }
+  }
+
+  // === PRATINJAU UPLOAD VIDEO ===
+  function pratinjauVideo(input) {
+    const kotak = document.getElementById('kotakPratinjauVideo');
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        fileVideoBase64 = e.target.result;
+        kotak.innerHTML = `<video src="${fileVideoBase64}" controls muted playsinline></video>`;
+      }
+      reader.readAsDataURL(input.files[0]);
+    } else {
+      fileVideoBase64 = null;
+      kotak.innerHTML = 'Belum ada video';
+    }
+  }
 
   // === BUAT GAMBAR OTOMATIS SAMA DENGAN index.html ===
   function buatGambarProduk(inisial, warnaLatar) {
@@ -338,11 +404,13 @@
     const harga = parseInt(document.getElementById('harga').value);
     const kategori = document.getElementById('kategori').value.trim();
     const stok = parseInt(document.getElementById('stok').value);
-    const gambar = document.getElementById('gambar').value.trim();
-    const video = document.getElementById('video').value.trim();
     const ukuran = document.getElementById('ukuran').value.trim();
     const varianWarna = document.getElementById('warnaVar').value.trim();
     const deskripsi = document.getElementById('deskripsi').value.trim();
+
+    // Prioritas: File Upload > Link Input > Otomatis
+    const gambar = fileGambarBase64 || document.getElementById('gambarLink').value.trim();
+    const video = fileVideoBase64 || document.getElementById('videoLink').value.trim();
 
     if(!nama || !harga || !kategori || isNaN(stok) || stok<0) return alert('Lengkapi data Nama, Harga, Kategori, dan Stok!');
 
@@ -369,8 +437,16 @@
     }
     simpanData(KEY_PRODUK, produk);
     muatSemua();
-    document.querySelectorAll('#view-produk input').forEach(i=>i.value='');
+    bersihkanForm();
     alert('✅ Produk berhasil disimpan!');
+  }
+
+  function bersihkanForm() {
+    document.querySelectorAll('#view-produk input').forEach(i=>i.value='');
+    document.getElementById('kotakPratinjauGambar').innerHTML = 'Belum ada gambar';
+    document.getElementById('kotakPratinjauVideo').innerHTML = 'Belum ada video';
+    fileGambarBase64 = null;
+    fileVideoBase64 = null;
   }
 
   function editProduk(id){
@@ -380,21 +456,31 @@
     document.getElementById('harga').value = p.harga;
     document.getElementById('kategori').value = p.kategori;
     document.getElementById('stok').value = p.stok;
-    document.getElementById('gambar').value = p.gambar || '';
-    document.getElementById('video').value = p.video || '';
+    document.getElementById('gambarLink').value = p.gambar || '';
+    document.getElementById('videoLink').value = p.video || '';
     document.getElementById('ukuran').value = p.ukuran || '';
     document.getElementById('warnaVar').value = p.varianWarna || '';
     document.getElementById('deskripsi').value = p.deskripsi || '';
     document.getElementById('btnSimpan').innerText = '✓ Perbarui Produk';
     document.getElementById('btnBatal').classList.remove('hidden');
     
+    // Tampilkan pratinjau saat edit
+    if(p.gambar && p.gambar.startsWith('data:image')) {
+      document.getElementById('kotakPratinjauGambar').innerHTML = `<img src="${p.gambar}">`;
+      fileGambarBase64 = p.gambar;
+    }
+    if(p.video && p.video.startsWith('data:video')) {
+      document.getElementById('kotakPratinjauVideo').innerHTML = `<video src="${p.video}" controls></video>`;
+      fileVideoBase64 = p.video;
+    }
+
     // === OTOMATIS GESER KE ATAS FORM SAAT KLIK UBAH ===
     document.getElementById('nama').scrollIntoView({behavior:'smooth', block:'center'});
   }
 
   function batalEdit(){
     idEdit = null;
-    document.querySelectorAll('#view-produk input').forEach(i=>i.value='');
+    bersihkanForm();
     document.getElementById('btnSimpan').innerText = '+ Tambah Produk';
     document.getElementById('btnBatal').classList.add('hidden');
   }
