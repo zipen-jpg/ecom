@@ -7,7 +7,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script>
   tailwind.config = {
     theme: {
@@ -133,6 +133,7 @@
           </div>
           <input type="text" id="deskripsi" placeholder="Deskripsi Produk" class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mb-2">
           <input type="text" id="gambar" placeholder="🔗 Tempel link gambar... (Kosongkan = gambar otomatis)" class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mb-1">
+          <input type="text" id="video" placeholder="🎬 Link Video Produk (opsional)" class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mb-1">
           <p class="text-[10px] text-gray-400 mb-3">📌 Biarkan kosong → sistem membuatkan gambar otomatis berwarna</p>
           <div class="flex gap-2">
             <button onclick="simpanProduk()" id="btnSimpan" class="flex-1 bg-primary text-white py-2.5 rounded-lg font-display font-700 text-sm">+ Tambah Produk</button>
@@ -338,6 +339,7 @@
     const kategori = document.getElementById('kategori').value.trim();
     const stok = parseInt(document.getElementById('stok').value);
     const gambar = document.getElementById('gambar').value.trim();
+    const video = document.getElementById('video').value.trim();
     const ukuran = document.getElementById('ukuran').value.trim();
     const varianWarna = document.getElementById('warnaVar').value.trim();
     const deskripsi = document.getElementById('deskripsi').value.trim();
@@ -350,17 +352,17 @@
       produk[idx] = {
         ...produk[idx], 
         nama, harga, kategori, stok, 
-        gambar, ukuran, varianWarna, deskripsi
+        gambar, video, ukuran, varianWarna, deskripsi
       };
       idEdit = null;
       document.getElementById('btnSimpan').innerText = '+ Tambah Produk';
       document.getElementById('btnBatal').classList.add('hidden');
     }else{
-      const warnaLatar = '#' + Math.floor(Math.random()*16777215).toString(16);
+      const warnaLatar = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
       produk.push({
         id: Date.now(), 
         nama, harga, kategori, stok, 
-        gambar, ukuran, varianWarna, deskripsi,
+        gambar, video, ukuran, varianWarna, deskripsi,
         inisial: nama.charAt(0).toUpperCase(),
         warnaLatar: warnaLatar
       });
@@ -379,6 +381,7 @@
     document.getElementById('kategori').value = p.kategori;
     document.getElementById('stok').value = p.stok;
     document.getElementById('gambar').value = p.gambar || '';
+    document.getElementById('video').value = p.video || '';
     document.getElementById('ukuran').value = p.ukuran || '';
     document.getElementById('warnaVar').value = p.varianWarna || '';
     document.getElementById('deskripsi').value = p.deskripsi || '';
