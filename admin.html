@@ -16,7 +16,11 @@
           primary: '#ff2d55',
           primaryDark: '#e02047',
           hijau: '#16a34a',
-          amber: '#d97706'
+          amber: '#d97706',
+          biru: '#3b82f6',
+          ungu: '#8b5cf6',
+          merah: '#ef4444',
+          abu: '#6b7280'
         },
         fontFamily: {
           display: ['Sora', 'sans-serif'],
@@ -55,11 +59,19 @@
   }
   .modal-latar { position: fixed; inset:0; background:rgba(0,0,0,0.5); z-index:50; display:flex; align-items:center; justify-content:center; padding:1rem; }
   .modal-kotak { background:white; border-radius:1rem; max-width:420px; width:100%; max-height:90vh; overflow-y:auto; }
+  .status-label { font-size: 0.7rem; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+  .status-menunggu { background: #fef3c7; color: #92400e; }
+  .status-diproses { background: #dbeafe; color: #1e40af; }
+  .status-dikirim { background: #e9d5ff; color: #6b21a8; }
+  .status-perjalanan { background: #fbcfe8; color: #9f1239; }
+  .status-sampai { background: #cffafe; color: #0f766e; }
+  .status-selesai { background: #d1fae5; color: #065f46; }
+  .status-dibatalkan { background: #fee2e2; color: #b91c1c; }
   @media (max-width: 640px) {
     main { padding: 0.75rem !important; }
     .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     table { font-size: 0.7rem; }
-    input, button { font-size: 0.875rem !important; }
+    input, button, select { font-size: 0.875rem !important; }
   }
 </style>
 </head>
@@ -103,6 +115,7 @@
     <nav class="flex-1 p-3 space-y-1">
       <button data-view="dashboard" onclick="showView('dashboard')" class="nav-item active w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm">📊 Dashboard</button>
       <button data-view="produk" onclick="showView('produk')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm">📦 Data Produk</button>
+      <button data-view="pembeli" onclick="showView('pembeli')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm">👤 Data Pembeli</button>
       <button data-view="laporan" onclick="showView('laporan')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm">🧾 Laporan Penjualan</button>
       <button data-view="grafik" onclick="showView('grafik')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm">📈 Grafik</button>
     </nav>
@@ -127,9 +140,29 @@
           <div class="bg-white p-4 rounded-xl border border-gray-200"><p class="text-[11px] text-gray-500">Total Produk</p><p id="jmlProduk" class="font-num text-xl font-700 text-primary">0</p></div>
           <div class="bg-white p-4 rounded-xl border border-gray-200"><p class="text-[11px] text-gray-500">Total Transaksi</p><p id="jmlTransaksi" class="font-num text-xl font-700 text-hijau">0</p></div>
           <div class="bg-white p-4 rounded-xl border border-gray-200 col-span-2 lg:col-span-1"><p class="text-[11px] text-gray-500">Total Pendapatan</p><p id="totalPendapatan" class="font-num text-base font-700 text-amber">Rp 0</p></div>
-          <div class="bg-white p-4 rounded-xl border border-gray-200 col-span-2 lg:col-span-1"><p class="text-[11px] text-gray-500">Pendapatan Hari Ini</p><p id="pendapatanHariIni" class="font-num text-base font-700 text-primary">Rp 0</p></div>
+          <div class="bg-white p-4 rounded-xl border border-gray-200 col-span-2 lg:col-span-1"><p class="text-[11px] text-gray-500">Pesanan Menunggu</p><p id="jmlMenunggu" class="font-num text-base font-700 text-amber">0</p></div>
           <div class="bg-white p-4 rounded-xl border border-gray-200 col-span-2 lg:col-span-1"><p class="text-[11px] text-gray-500">Produk Terlaris</p><p id="produkTerlaris" class="text-sm font-700">-</p></div>
         </div>
+
+        <!-- STATUS PRODUK -->
+        <div class="bg-white p-4 rounded-xl border border-gray-200">
+          <h3 class="font-display font-700 text-sm mb-3">📊 Status Produk</h3>
+          <div class="grid grid-cols-3 gap-3">
+            <div class="text-center p-3 rounded-lg bg-hijau/5 border border-hijau/20">
+              <p class="text-[11px] text-gray-500">Tersedia</p>
+              <p id="produkTersedia" class="font-num text-lg font-700 text-hijau">0</p>
+            </div>
+            <div class="text-center p-3 rounded-lg bg-merah/5 border border-merah/20">
+              <p class="text-[11px] text-gray-500">Habis Stok</p>
+              <p id="produkHabis" class="font-num text-lg font-700 text-merah">0</p>
+            </div>
+            <div class="text-center p-3 rounded-lg bg-biru/5 border border-biru/20">
+              <p class="text-[11px] text-gray-500">% Tersedia</p>
+              <p id="persenTersedia" class="font-num text-lg font-700 text-biru">0%</p>
+            </div>
+          </div>
+        </div>
+
         <div class="bg-white p-4 rounded-xl border border-gray-200">
           <h3 class="font-display font-700 text-sm mb-3">Transaksi Terbaru</h3>
           <div id="riwayatTransaksi" class="space-y-2"></div>
@@ -150,17 +183,14 @@
           </div>
           <input type="text" id="deskripsi" placeholder="Deskripsi Produk" class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mb-2">
           
-          <!-- UPLOAD GAMBAR -->
           <label class="block text-xs font-medium text-gray-600 mb-1">🖼️ Upload Gambar Produk</label>
           <input type="file" id="gambarUpload" accept="image/*" onchange="pratinjauGambar(this)" class="w-full text-sm text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-primary file:text-white">
           <div id="kotakPratinjauGambar" class="preview-box text-gray-400 text-sm">Belum ada gambar</div>
           
-          <!-- ✅ UPLOAD VIDEO -->
           <label class="block text-xs font-medium text-gray-600 mt-3 mb-1">🎬 Upload Video Produk (Opsional)</label>
           <input type="file" id="videoUpload" accept="video/*" onchange="pratinjauVideo(this)" class="w-full text-sm text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-primary file:text-white">
           <div id="kotakPratinjauVideo" class="preview-box text-gray-400 text-sm">Belum ada video</div>
           
-          <!-- LINK CADANGAN -->
           <input type="text" id="gambarLink" placeholder="🔗 Atau tempel link gambar..." class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mt-3 mb-1">
           <input type="text" id="videoLink" placeholder="🎬 Atau tempel link video..." class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mb-1">
           <p class="text-[10px] text-gray-400 mb-3">📌 Biarkan kosong → sistem membuatkan gambar otomatis</p>
@@ -181,6 +211,14 @@
               <tbody id="tabelProduk"></tbody>
             </table>
           </div>
+        </div>
+      </section>
+
+      <!-- DATA PEMBELI -->
+      <section id="view-pembeli" class="view hidden space-y-4">
+        <div class="bg-white p-4 rounded-xl border border-gray-200">
+          <h3 class="font-display font-700 text-sm mb-4">👤 Data Pembeli & Status Pesanan</h3>
+          <div id="daftarPembeli"></div>
         </div>
       </section>
 
@@ -209,8 +247,9 @@
                 <tr class="text-left text-gray-500 border-b border-gray-200">
                   <th class="py-2 pr-2">No</th>
                   <th class="pr-2">Tanggal</th>
+                  <th class="pr-2">Pembeli</th>
                   <th class="pr-2">Total</th>
-                  <th>Aksi</th>
+                  <th>Status</th>
                 </tr>
               </thead>
               <tbody id="tabelLaporan"></tbody>
@@ -235,11 +274,11 @@
   </div>
 </div>
 
-<!-- === MODAL INFORMASI PEMBELI === -->
+<!-- MODAL DETAIL -->
 <div id="modalPembeli" class="hidden modal-latar" onclick="if(event.target===this) tutupModalPembeli()">
   <div class="modal-kotak p-5 m-4">
     <div class="flex items-center justify-between mb-4">
-      <h3 class="font-display font-700 text-lg text-primary">📋 Informasi Pembeli</h3>
+      <h3 class="font-display font-700 text-lg text-primary">📋 Detail Pesanan</h3>
       <button onclick="tutupModalPembeli()" class="text-gray-400 text-xl">×</button>
     </div>
     <div id="isiModalPembeli" class="space-y-2 text-sm"></div>
@@ -252,6 +291,16 @@
   const KEY_TRANSAKSI = 'db_transaksi_tokohijau';
   const KEY_LOGIN = 'admin_login_status';
 
+  const LABEL_STATUS = {
+    menunggu: 'Menunggu Konfirmasi',
+    diproses: 'Sedang Diproses',
+    dikirim: 'Sedang Dikirim',
+    perjalanan: 'Dalam Perjalanan',
+    sampaiditujuan: 'Sudah Sampai di Tujuan',
+    selesai: 'Pesanan Selesai',
+    dibatalkan: 'Dibatalkan'
+  };
+
   let fileGambarBase64 = null;
   let fileVideoBase64 = null;
 
@@ -261,31 +310,28 @@
   }
   function simpanData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
-  // PRATINJAU GAMBAR
   function pratinjauGambar(input) {
     const kotak = document.getElementById('kotakPratinjauGambar');
     if (input.files && input.files[0]) {
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = e => {
         fileGambarBase64 = e.target.result;
-        kotak.innerHTML = `<img src="${fileGambarBase64}" alt="Pratinjau Gambar">`;
-      }
+        kotak.innerHTML = `<img src="${fileGambarBase64}" alt="Pratinjau">`;
+      };
       reader.readAsDataURL(input.files[0]);
     } else {
       fileGambarBase64 = null;
       kotak.innerHTML = 'Belum ada gambar';
     }
   }
-
-  // ✅ PRATINJAU VIDEO
   function pratinjauVideo(input) {
     const kotak = document.getElementById('kotakPratinjauVideo');
     if (input.files && input.files[0]) {
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = e => {
         fileVideoBase64 = e.target.result;
         kotak.innerHTML = `<video src="${fileVideoBase64}" controls muted playsinline></video>`;
-      }
+      };
       reader.readAsDataURL(input.files[0]);
     } else {
       fileVideoBase64 = null;
@@ -301,14 +347,12 @@
   }
 
   function cekLogin() {
-    const status = localStorage.getItem(KEY_LOGIN);
-    if (status === 'sudah_login') {
+    if (localStorage.getItem(KEY_LOGIN) === 'sudah_login') {
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('appScreen').classList.remove('hidden');
       muatSemua();
     }
   }
-
   function login(e) {
     e.preventDefault();
     const u = document.getElementById('loginUser').value.trim();
@@ -322,7 +366,6 @@
       document.getElementById('loginError').classList.remove('hidden');
     }
   }
-
   function logout(){
     localStorage.removeItem(KEY_LOGIN);
     document.getElementById('appScreen').classList.add('hidden');
@@ -336,15 +379,77 @@
     document.getElementById('sidebar').classList.toggle('-translate-x-full',!buka);
     document.getElementById('overlay').classList.toggle('hidden',!buka);
   }
-
   function showView(nama){
     document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));
     document.getElementById('view-'+nama).classList.remove('hidden');
     document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.view===nama));
-    const judul = {dashboard:'Dashboard', produk:'Data Produk', laporan:'Laporan', grafik:'Grafik'};
+    const judul = {dashboard:'Dashboard', produk:'Data Produk', pembeli:'Data Pembeli', laporan:'Laporan', grafik:'Grafik'};
     document.getElementById('pageTitle').innerText = judul[nama];
     toggleSidebar(false);
+    if(nama==='pembeli') muatDataPembeli();
     if(nama==='grafik') setTimeout(renderGrafik, 150);
+  }
+
+  function ubahStatusPesanan(index, statusBaru) {
+    const trans = ambilData(KEY_TRANSAKSI);
+    trans[index].status = statusBaru;
+    trans[index].waktuPembaruan = new Date().toISOString();
+    simpanData(KEY_TRANSAKSI, trans);
+    alert('✅ Status diperbarui! Pembeli dapat melihat perubahannya.');
+    muatSemua();
+    muatDataPembeli();
+  }
+  function simpanLokasi(index) {
+    const input = document.getElementById(`lokasi-${index}`);
+    if(!input.value.trim()) return alert('⚠️ Isi lokasi/keterangan terlebih dahulu!');
+    const trans = ambilData(KEY_TRANSAKSI);
+    trans[index].lokasiTerkini = input.value.trim();
+    trans[index].waktuPembaruan = new Date().toISOString();
+    simpanData(KEY_TRANSAKSI, trans);
+    alert('✅ Lokasi diperbarui!');
+    muatDataPembeli();
+  }
+
+  function muatDataPembeli() {
+    const trans = ambilData(KEY_TRANSAKSI).reverse();
+    if(!trans.length) {
+      document.getElementById('daftarPembeli').innerHTML = '<p class="text-gray-400 text-sm text-center py-4">Belum ada pesanan.</p>';
+      return;
+    }
+    document.getElementById('daftarPembeli').innerHTML = trans.map((t, idx) => {
+      const i = trans.length - 1 - idx;
+      const statusClass = {
+        menunggu:'status-menunggu', diproses:'status-diproses', dikirim:'status-dikirim',
+        perjalanan:'status-perjalanan', sampaiditujuan:'status-sampai', selesai:'status-selesai', dibatalkan:'status-dibatalkan'
+      }[t.status] || 'status-menunggu';
+
+      return `
+      <div class="border-b border-gray-100 pb-4 mb-4 last:border-0">
+        <div class="flex justify-between items-start mb-2">
+          <div>
+            <p class="font-semibold text-sm">👤 ${t.penerima?.nama || 'Tanpa Nama'}</p>
+            <p class="text-xs text-gray-500">📞 ${t.penerima?.telp || '-'} | 📍 ${t.penerima?.alamat || '-'} ${t.penerima?.kodePos||''}</p>
+            <p class="text-xs mt-1">📦 ${t.items.map(x=>x.nama+' × '+x.qty).join(', ')}</p>
+            <p class="font-bold text-primary text-sm mt-1">Rp ${t.total.toLocaleString('id-ID')} | 💳 ${t.pembayaran||'-'}</p>
+          </div>
+          <span class="status-label ${statusClass}">${LABEL_STATUS[t.status]}</span>
+        </div>
+        <p class="text-xs text-gray-500 mb-2">📍 Lokasi: ${t.lokasiTerkini || 'Menunggu konfirmasi'}</p>
+        <select onchange="ubahStatusPesanan(${i}, this.value)" class="text-xs p-1.5 border rounded w-full mb-2">
+          <option value="menunggu" ${t.status==='menunggu'?'selected':''}>Menunggu Konfirmasi</option>
+          <option value="diproses" ${t.status==='diproses'?'selected':''}>Sedang Diproses</option>
+          <option value="dikirim" ${t.status==='dikirim'?'selected':''}>Sedang Dikirim</option>
+          <option value="perjalanan" ${t.status==='perjalanan'?'selected':''}>Dalam Perjalanan</option>
+          <option value="sampaiditujuan" ${t.status==='sampaiditujuan'?'selected':''}>Sudah Sampai di Tujuan</option>
+          <option value="selesai" ${t.status==='selesai'?'selected':''}>Pesanan Selesai</option>
+          <option value="dibatalkan" ${t.status==='dibatalkan'?'selected':''}>Dibatalkan</option>
+        </select>
+        <div class="flex gap-2">
+          <input type="text" id="lokasi-${i}" value="${t.lokasiTerkini||''}" placeholder="Masukkan lokasi/keterangan" class="text-xs flex-1 p-1.5 border rounded">
+          <button onclick="simpanLokasi(${i})" class="bg-hijau text-white text-xs px-2 rounded">Simpan</button>
+        </div>
+      </div>`;
+    }).join('');
   }
 
   function muatSemua(){
@@ -352,33 +457,38 @@
     const transaksi = ambilData(KEY_TRANSAKSI);
     document.getElementById('jmlProduk').innerText = produk.length;
     document.getElementById('jmlTransaksi').innerText = transaksi.length;
-    document.getElementById('totalPendapatan').innerText = 'Rp '+transaksi.reduce((s,t)=>s+t.total,0).toLocaleString('id-ID');
-    
-    const hariIni = new Date().toISOString().split('T')[0];
-    const totalHariIni = transaksi.filter(t=>new Date(t.tanggal).toISOString().split('T')[0]===hariIni).reduce((s,t)=>s+t.total,0);
-    document.getElementById('pendapatanHariIni').innerText = 'Rp '+totalHariIni.toLocaleString('id-ID');
+    document.getElementById('totalPendapatan').innerText = 'Rp '+transaksi.reduce((s,t)=>s+(t.total||0),0).toLocaleString('id-ID');
+    document.getElementById('jmlMenunggu').innerText = transaksi.filter(t=>t.status==='menunggu').length;
 
+    const produkAktif = produk.filter(p=>p.stok > 0);
+    const produkHabis = produk.filter(p=>p.stok <= 0);
+    const persen = produk.length > 0 ? Math.round((produkAktif.length / produk.length) * 100) : 0;
+    document.getElementById('produkTersedia').innerText = produkAktif.length;
+    document.getElementById('produkHabis').innerText = produkHabis.length;
+    document.getElementById('persenTersedia').innerText = persen + '%';
+
+    const hariIni = new Date().toISOString().split('T')[0];
+    const totalHariIni = transaksi.filter(t=>new Date(t.tanggal).toISOString().split('T')[0]===hariIni).reduce((s,t)=>s+(t.total||0),0);
     const jual = {};
     transaksi.forEach(t=>t.items.forEach(i=>{jual[i.nama]=(jual[i.nama]||0)+i.qty;}));
     const urut = Object.entries(jual).sort((a,b)=>b[1]-a[1]);
     document.getElementById('produkTerlaris').innerText = urut.length ? urut[0][0] : '-';
 
     document.getElementById('riwayatTransaksi').innerHTML = transaksi.slice(-5).reverse().map(t=>`
-      <div class="flex justify-between text-xs p-2 bg-gray-50 rounded">
-        <span>${new Date(t.tanggal).toLocaleDateString('id-ID')}</span>
-        <span class="font-num text-hijau">Rp ${t.total.toLocaleString('id-ID')}</span>
+      <div class="flex justify-between items-center text-xs p-2 bg-gray-50 rounded mb-1">
+        <span>${new Date(t.tanggal).toLocaleDateString('id-ID')} — ${t.penerima?.nama||'Pembeli'}</span>
+        <span class="font-num text-hijau">Rp ${(t.total||0).toLocaleString('id-ID')}</span>
       </div>`).join('') || '<p class="text-gray-400 text-xs">Belum ada transaksi</p>';
 
     renderTabelProduk(produk);
+    renderTabelLaporan(transaksi);
   }
 
   function renderTabelProduk(list){
     const cari = document.getElementById('cariAdmin').value.toLowerCase();
     const hasil = list.filter(p=>p.nama.toLowerCase().includes(cari));
     document.getElementById('tabelProduk').innerHTML = hasil.map(p=>{
-      const tampilGambar = p.gambar && p.gambar.trim() !== '' 
-        ? p.gambar 
-        : buatGambarProduk(p.nama, p.warnaLatar||'#ff2d55');
+      const tampilGambar = p.gambar && p.gambar.trim() !== '' ? p.gambar : buatGambarProduk(p.nama, p.warnaLatar||'#ff2d55');
       return `
       <tr class="border-b border-gray-100">
         <td class="py-2">
@@ -404,8 +514,6 @@
     const ukuran = document.getElementById('ukuran').value.trim();
     const varianWarna = document.getElementById('warnaVar').value.trim();
     const deskripsi = document.getElementById('deskripsi').value.trim();
-
-    // ✅ Prioritas: File Upload > Link
     const gambar = fileGambarBase64 || document.getElementById('gambarLink').value.trim();
     const video = fileVideoBase64 || document.getElementById('videoLink').value.trim();
 
@@ -414,22 +522,15 @@
     const produk = ambilData(KEY_PRODUK);
     if(idEdit){
       const idx = produk.findIndex(i=>i.id===idEdit);
-      produk[idx] = {
-        ...produk[idx], 
-        nama, harga, kategori, stok, 
-        gambar, video, ukuran, varianWarna, deskripsi
-      };
+      produk[idx] = {...produk[idx], nama, harga, kategori, stok, gambar, video, ukuran, varianWarna, deskripsi};
       idEdit = null;
       document.getElementById('btnSimpan').innerText = '+ Tambah Produk';
       document.getElementById('btnBatal').classList.add('hidden');
     }else{
-      const warnaLatar = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
       produk.push({
-        id: Date.now(), 
-        nama, harga, kategori, stok, 
-        gambar, video, ukuran, varianWarna, deskripsi,
+        id: Date.now(), nama, harga, kategori, stok, gambar, video, ukuran, varianWarna, deskripsi,
         inisial: nama.charAt(0).toUpperCase(),
-        warnaLatar: warnaLatar
+        warnaLatar: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')
       });
     }
     simpanData(KEY_PRODUK, produk);
@@ -437,7 +538,6 @@
     bersihkanForm();
     alert('✅ Produk berhasil disimpan!');
   }
-
   function bersihkanForm() {
     document.querySelectorAll('#view-produk input').forEach(i=>i.value='');
     document.getElementById('kotakPratinjauGambar').innerHTML = 'Belum ada gambar';
@@ -445,7 +545,6 @@
     fileGambarBase64 = null;
     fileVideoBase64 = null;
   }
-
   function editProduk(id){
     const p = ambilData(KEY_PRODUK).find(i=>i.id===id);
     idEdit = id;
@@ -460,8 +559,6 @@
     document.getElementById('deskripsi').value = p.deskripsi || '';
     document.getElementById('btnSimpan').innerText = '✓ Perbarui Produk';
     document.getElementById('btnBatal').classList.remove('hidden');
-    
-    // Tampilkan pratinjau saat edit
     if(p.gambar && p.gambar.startsWith('data:image')) {
       document.getElementById('kotakPratinjauGambar').innerHTML = `<img src="${p.gambar}">`;
       fileGambarBase64 = p.gambar;
@@ -470,30 +567,23 @@
       document.getElementById('kotakPratinjauVideo').innerHTML = `<video src="${p.video}" controls muted playsinline></video>`;
       fileVideoBase64 = p.video;
     }
-
-    // ✅ OTOMATIS GESER KE ATAS FORM
     document.getElementById('nama').scrollIntoView({behavior:'smooth', block:'center'});
   }
-
   function batalEdit(){
     idEdit = null;
     bersihkanForm();
     document.getElementById('btnSimpan').innerText = '+ Tambah Produk';
     document.getElementById('btnBatal').classList.add('hidden');
   }
-
   function hapusProduk(id){
     if(!confirm('Yakin hapus produk ini?')) return;
     simpanData(KEY_PRODUK, ambilData(KEY_PRODUK).filter(i=>i.id!==id));
     muatSemua();
   }
 
-  // MODAL INFORMASI PEMBELI
   function bukaModalPembeli(indexTransaksi){
-    const transaksi = ambilData(KEY_TRANSAKSI);
-    const t = transaksi[indexTransaksi];
+    const t = ambilData(KEY_TRANSAKSI)[indexTransaksi];
     if(!t) return;
-
     const penerima = t.penerima || {};
     document.getElementById('isiModalPembeli').innerHTML = `
       <div class="grid grid-cols-3 gap-1 border-b border-gray-100 pb-2">
@@ -517,21 +607,34 @@
         <span class="col-span-2">${t.pembayaran || '-'}</span>
       </div>
       <div class="grid grid-cols-3 gap-1 border-b border-gray-100 pb-2">
+        <span class="font-semibold text-gray-600">Status</span>
+        <span class="col-span-2 font-semibold">${LABEL_STATUS[t.status]}</span>
+      </div>
+      <div class="grid grid-cols-3 gap-1 border-b border-gray-100 pb-2">
         <span class="font-semibold text-gray-600">Barang</span>
         <span class="col-span-2">${t.items.map(i=>`${i.nama} (${i.ukuran||'-'} / ${i.warna||'-'}) × ${i.qty}`).join('<br>')}</span>
       </div>
       <div class="grid grid-cols-3 gap-1 pt-1">
         <span class="font-semibold text-gray-600">Total</span>
-        <span class="col-span-2 font-bold text-primary text-lg">Rp ${t.total.toLocaleString('id-ID')}</span>
+        <span class="col-span-2 font-bold text-primary text-lg">Rp ${(t.total||0).toLocaleString('id-ID')}</span>
       </div>
     `;
     document.getElementById('modalPembeli').classList.remove('hidden');
   }
-
   function tutupModalPembeli(){
     document.getElementById('modalPembeli').classList.add('hidden');
   }
 
+  function renderTabelLaporan(list){
+    document.getElementById('tabelLaporan').innerHTML = list.map((t,i)=>`
+      <tr class="border-b border-gray-100">
+        <td class="py-2">${i+1}</td>
+        <td>${new Date(t.tanggal).toLocaleDateString('id-ID')}</td>
+        <td>${t.penerima?.nama || '-'}</td>
+        <td class="font-num text-hijau">Rp ${(t.total||0).toLocaleString('id-ID')}</td>
+        <td><span class="status-label status-${t.status}">${LABEL_STATUS[t.status]}</span></td>
+      </tr>`).join('');
+  }
   function renderLaporan(){
     const transaksi = ambilData(KEY_TRANSAKSI);
     const dari = document.getElementById('filterDari').value;
@@ -544,14 +647,7 @@
       });
     }
     document.getElementById('laporanKosong').classList.toggle('hidden', hasil.length>0);
-    document.getElementById('tabelLaporan').innerHTML = hasil.map((t,i)=>`
-      <tr class="border-b border-gray-100">
-        <td class="py-2">${i+1}</td>
-        <td>${new Date(t.tanggal).toLocaleDateString('id-ID')}</td>
-        <td class="font-num text-hijau">Rp ${t.total.toLocaleString('id-ID')}</td>
-        <td><button onclick="bukaModalPembeli(${transaksi.indexOf(t)})" class="text-primary text-xs font-semibold">👁 Lihat Pembeli</button></td>
-      </tr>
-    `).join('');
+    renderTabelLaporan(hasil);
   }
   function resetFilterLaporan(){
     document.getElementById('filterDari').value='';
@@ -563,11 +659,10 @@
   function renderGrafik(){
     if(grafikSudah) return;
     const transaksi = ambilData(KEY_TRANSAKSI);
-
     const hari = {};
     transaksi.forEach(t=>{
       const tgl = new Date(t.tanggal).toLocaleDateString('id-ID');
-      hari[tgl] = (hari[tgl]||0) + t.total;
+      hari[tgl] = (hari[tgl]||0) + (t.total||0);
     });
     const labelHari = Object.keys(hari).slice(-7);
     const nilaiHari = labelHari.map(d=>hari[d]);
@@ -576,7 +671,6 @@
       data:{labels:labelHari,datasets:[{label:'Pendapatan',data:nilaiHari,backgroundColor:'#ff2d55'}]},
       options:{responsive:true,maintainAspectRatio:false}
     });
-
     const jml = {};
     transaksi.forEach(t=>t.items.forEach(i=>{jml[i.nama]=(jml[i.nama]||0)+i.qty;}));
     const namaBrg = Object.keys(jml);
@@ -594,73 +688,8 @@
   window.addEventListener('storage', (e) => {
     if (e.key === KEY_PRODUK || e.key === KEY_TRANSAKSI) { 
       muatSemua(); 
-      renderLaporan(); 
       grafikSudah = false; 
     }
-function muatDataPembeli() {
-  const trans = ambilData(KEY_TRANSAKSI).reverse();
-  const labelStatus = {
-    menunggu: 'Menunggu Konfirmasi',
-    diproses: 'Sedang Diproses',
-    dikirim: 'Sedang Dikirim',
-    perjalanan: 'Dalam Perjalanan',
-    sampaiditujuan: 'Sudah Sampai di Tujuan',
-    selesai: 'Pesanan Selesai',
-    dibatalkan: 'Dibatalkan'
-  };
-  document.getElementById('daftarPembeli').innerHTML = trans.length? trans.map((t, idx)=>`
-    <div class="border-b py-3">
-      <p class="font-semibold">👤 ${t.penerima?.nama||'Tanpa Nama'}</p>
-      <p class="text-sm text-gray-600">📞 ${t.penerima?.telp||'-'}</p>
-      <p class="text-sm text-gray-600">📍 ${t.penerima?.alamat||'-'} ${t.penerima?.kodePos||''}</p>
-      <p class="text-sm mt-1">📦 ${t.items.map(i=>i.nama+' × '+i.qty).join(', ')}</p>
-      <p class="font-bold text-primary mt-1">Total: Rp ${(t.total||0).toLocaleString('id-ID')} | 💳 ${t.pembayaran||'-'}</p>
-      
-      <!-- === BAGIAN UBAH STATUS === -->
-      <div class="mt-2 p-2 bg-gray-50 rounded-lg border border-gray-100">
-        <p class="text-sm font-semibold mb-1">Status Saat Ini: 
-          <span class="text-primary">${labelStatus[t.status] || 'Menunggu Konfirmasi'}</span>
-        </p>
-        <p class="text-xs text-gray-500 mb-2">Lokasi Terkini: ${t.lokasiTerkini || 'Menunggu konfirmasi penjual'}</p>
-        <select onchange="ubahStatusPesanan(${idx}, this.value)" class="text-sm mb-2">
-          <option value="menunggu" ${t.status==='menunggu'?'selected':''}>Menunggu Konfirmasi</option>
-          <option value="diproses" ${t.status==='diproses'?'selected':''}>Sedang Diproses</option>
-          <option value="dikirim" ${t.status==='dikirim'?'selected':''}>Sedang Dikirim</option>
-          <option value="perjalanan" ${t.status==='perjalanan'?'selected':''}>Dalam Perjalanan</option>
-          <option value="sampaiditujuan" ${t.status==='sampaiditujuan'?'selected':''}>Sudah Sampai di Tujuan</option>
-          <option value="selesai" ${t.status==='selesai'?'selected':''}>Pesanan Selesai</option>
-          <option value="dibatalkan" ${t.status==='dibatalkan'?'selected':''}>Dibatalkan</option>
-        </select>
-        <input type="text" id="lokasi-${idx}" value="${t.lokasiTerkini||''}" placeholder="Masukkan lokasi/keterangan terkini" class="text-sm">
-        <button onclick="simpanLokasi(${idx})" class="btn-utama text-xs py-1 px-2 mt-2">✅ Simpan Lokasi & Status</button>
-      </div>
-    </div>
-  `).join('') : '<p class="text-gray-400 text-sm">Belum ada pesanan.</p>';
-}
-
-// === FUNGSI UBAH STATUS ===
-function ubahStatusPesanan(idx, statusBaru) {
-  const trans = ambilData(KEY_TRANSAKSI);
-  trans[idx].status = statusBaru;
-  trans[idx].waktuPembaruan = new Date().toISOString();
-  simpanData(KEY_TRANSAKSI, trans);
-}
-
-// === FUNGSI SIMPAN LOKASI ===
-function simpanLokasi(idx) {
-  const lokasiBaru = document.getElementById(`lokasi-${idx}`).value.trim();
-  if (!lokasiBaru) return alert('⚠️ Masukkan lokasi/keterangan terlebih dahulu!');
-  
-  const trans = ambilData(KEY_TRANSAKSI);
-  trans[idx].lokasiTerkini = lokasiBaru;
-  trans[idx].waktuPembaruan = new Date().toISOString();
-  simpanData(KEY_TRANSAKSI, trans);
-  
-  alert('✅ Status & lokasi diperbarui! Pembeli bisa melihat perubahannya sekarang.');
-  muatDataPembeli(); // Segar tampilan admin
-  muatDashboard(); // Segar juga dashboard
-}
-
   });
 </script>
 </body>
