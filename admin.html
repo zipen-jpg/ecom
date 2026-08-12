@@ -37,7 +37,6 @@
   .toast-in { animation: slideIn .3s ease; }
   .nav-item.active { background: '#fff0f5'; color: '#ff2d55'; font-weight: 600; }
   img { max-width: 100%; height: auto; }
-  /* PREVIEW UPLOAD */
   .preview-box {
     border: 2px dashed #e2e8f0;
     border-radius: 0.5rem;
@@ -54,7 +53,6 @@
     max-height: 160px;
     border-radius: 0.375rem;
   }
-  /* MODAL INFORMASI PEMBELI */
   .modal-latar { position: fixed; inset:0; background:rgba(0,0,0,0.5); z-index:50; display:flex; align-items:center; justify-content:center; padding:1rem; }
   .modal-kotak { background:white; border-radius:1rem; max-width:420px; width:100%; max-height:90vh; overflow-y:auto; }
   @media (max-width: 640px) {
@@ -123,6 +121,7 @@
     </header>
 
     <main class="p-4">
+      <!-- DASHBOARD -->
       <section id="view-dashboard" class="view space-y-4">
         <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
           <div class="bg-white p-4 rounded-xl border border-gray-200"><p class="text-[11px] text-gray-500">Total Produk</p><p id="jmlProduk" class="font-num text-xl font-700 text-primary">0</p></div>
@@ -137,6 +136,7 @@
         </div>
       </section>
 
+      <!-- KELOLA PRODUK -->
       <section id="view-produk" class="view hidden space-y-4">
         <div class="bg-white p-4 rounded-xl border border-gray-200">
           <h3 class="font-display font-700 text-sm mb-3">Kelola Produk</h3>
@@ -150,17 +150,17 @@
           </div>
           <input type="text" id="deskripsi" placeholder="Deskripsi Produk" class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mb-2">
           
-          <!-- UPLOAD GAMBAR DARI GALERI -->
+          <!-- UPLOAD GAMBAR -->
           <label class="block text-xs font-medium text-gray-600 mb-1">🖼️ Upload Gambar Produk</label>
           <input type="file" id="gambarUpload" accept="image/*" onchange="pratinjauGambar(this)" class="w-full text-sm text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-primary file:text-white">
           <div id="kotakPratinjauGambar" class="preview-box text-gray-400 text-sm">Belum ada gambar</div>
           
-          <!-- UPLOAD VIDEO DARI GALERI -->
+          <!-- ✅ UPLOAD VIDEO -->
           <label class="block text-xs font-medium text-gray-600 mt-3 mb-1">🎬 Upload Video Produk (Opsional)</label>
           <input type="file" id="videoUpload" accept="video/*" onchange="pratinjauVideo(this)" class="w-full text-sm text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-primary file:text-white">
           <div id="kotakPratinjauVideo" class="preview-box text-gray-400 text-sm">Belum ada video</div>
           
-          <!-- LINK CADANGAN (TETAP DIPERBOLEHKAN) -->
+          <!-- LINK CADANGAN -->
           <input type="text" id="gambarLink" placeholder="🔗 Atau tempel link gambar..." class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mt-3 mb-1">
           <input type="text" id="videoLink" placeholder="🎬 Atau tempel link video..." class="w-full bg-gray-50 border border-gray-200 p-2.5 rounded-lg outline-none text-sm mb-1">
           <p class="text-[10px] text-gray-400 mb-3">📌 Biarkan kosong → sistem membuatkan gambar otomatis</p>
@@ -184,6 +184,7 @@
         </div>
       </section>
 
+      <!-- LAPORAN -->
       <section id="view-laporan" class="view hidden space-y-4">
         <div class="bg-white p-4 rounded-xl border border-gray-200">
           <h3 class="font-display font-700 text-sm mb-3">Filter Tanggal</h3>
@@ -219,6 +220,7 @@
         </div>
       </section>
 
+      <!-- GRAFIK -->
       <section id="view-grafik" class="view hidden space-y-4">
         <div class="bg-white p-4 rounded-xl border border-gray-200">
           <h3 class="font-display font-700 text-sm mb-3">Pendapatan Harian</h3>
@@ -245,15 +247,11 @@
   </div>
 </div>
 
-<div id="toastBox" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50"></div>
-
 <script>
-  // === NAMA DATABASE SAMA DENGAN index.html ===
   const KEY_PRODUK = 'db_produk_tokohijau';
   const KEY_TRANSAKSI = 'db_transaksi_tokohijau';
   const KEY_LOGIN = 'admin_login_status';
 
-  // Variabel penyimpan file upload
   let fileGambarBase64 = null;
   let fileVideoBase64 = null;
 
@@ -263,7 +261,7 @@
   }
   function simpanData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
-  // === PRATINJAU UPLOAD GAMBAR ===
+  // PRATINJAU GAMBAR
   function pratinjauGambar(input) {
     const kotak = document.getElementById('kotakPratinjauGambar');
     if (input.files && input.files[0]) {
@@ -279,7 +277,7 @@
     }
   }
 
-  // === PRATINJAU UPLOAD VIDEO ===
+  // ✅ PRATINJAU VIDEO
   function pratinjauVideo(input) {
     const kotak = document.getElementById('kotakPratinjauVideo');
     if (input.files && input.files[0]) {
@@ -295,7 +293,6 @@
     }
   }
 
-  // === BUAT GAMBAR OTOMATIS SAMA DENGAN index.html ===
   function buatGambarProduk(inisial, warnaLatar) {
     const huruf = (inisial||'?').trim().charAt(0).toUpperCase();
     const warna = warnaLatar || '#ff2d55';
@@ -408,7 +405,7 @@
     const varianWarna = document.getElementById('warnaVar').value.trim();
     const deskripsi = document.getElementById('deskripsi').value.trim();
 
-    // Prioritas: File Upload > Link Input > Otomatis
+    // ✅ Prioritas: File Upload > Link
     const gambar = fileGambarBase64 || document.getElementById('gambarLink').value.trim();
     const video = fileVideoBase64 || document.getElementById('videoLink').value.trim();
 
@@ -470,11 +467,11 @@
       fileGambarBase64 = p.gambar;
     }
     if(p.video && p.video.startsWith('data:video')) {
-      document.getElementById('kotakPratinjauVideo').innerHTML = `<video src="${p.video}" controls></video>`;
+      document.getElementById('kotakPratinjauVideo').innerHTML = `<video src="${p.video}" controls muted playsinline></video>`;
       fileVideoBase64 = p.video;
     }
 
-    // === OTOMATIS GESER KE ATAS FORM SAAT KLIK UBAH ===
+    // ✅ OTOMATIS GESER KE ATAS FORM
     document.getElementById('nama').scrollIntoView({behavior:'smooth', block:'center'});
   }
 
@@ -491,7 +488,7 @@
     muatSemua();
   }
 
-  // === FUNGSI MODAL INFORMASI PEMBELI ===
+  // MODAL INFORMASI PEMBELI
   function bukaModalPembeli(indexTransaksi){
     const transaksi = ambilData(KEY_TRANSAKSI);
     const t = transaksi[indexTransaksi];
