@@ -45,6 +45,7 @@
   .btn-detail:active { background: #ff2d55; color: #fff; }
   .btn-keranjang { background: #ff2d55; color: #fff; border-radius: 10px; padding: 10px; font-size: 14px; font-weight: 600; width: 100%; border: none; transition: all .2s; cursor: pointer; }
   .btn-keranjang:active { transform: scale(.97); }
+  .btn-keranjang:disabled { background: #ccc; cursor: not-allowed; opacity: 0.6; transform: none; }
   .kategori-tab { padding: 8px 18px; border-radius: 20px; font-size: 14px; border: none; background: #f0f0f0; color: #555; white-space: nowrap; cursor: pointer; }
   .kategori-tab.aktif { background: #ff2d55; color: #fff; }
   .pilihan { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
@@ -64,7 +65,6 @@
   .video-container { width: 100%; border-radius: 12px; overflow: hidden; background: #000; margin-bottom: 16px; display: none; }
   .video-container.show { display: block; }
   .video-container video { width: 100%; display: block; }
-  .bg-kartu { background: #ffffff; border: 1px solid #eee; }
   .tab-bawah { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #eee; display: flex; justify-content: space-around; padding: 8px 0; z-index: 40; }
   .tab-bawah button { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: #888; background: none; border: none; cursor: pointer; }
   .tab-bawah button.aktif { color: #ff2d55; }
@@ -127,7 +127,7 @@
   <div class="px-4 pt-4">
     <div id="gambarDetail" class="w-full aspect-square rounded-xl overflow-hidden mb-4 bg-gray-100 flex items-center justify-center"></div>
     
-    <button id="tombolVideo" onclick="putarVideo()" class="video-btn">
+    <button id="tombolVideo" onclick="putarVideo()" class="video-btn" style="display:none;">
       ▶️ Tonton Video Produk
     </button>
     <div id="kotakVideo" class="video-container">
@@ -267,6 +267,7 @@
 </div>
 
 <script>
+  // === NAMA DATABASE SAMA DENGAN ADMIN ===
   const KEY_PRODUK = 'db_produk_tokohijau';
   const KEY_TRANSAKSI = 'db_transaksi_tokohijau';
   const KEY_KERANJANG = 'keranjang_toko';
@@ -278,31 +279,13 @@
   let sumberCheckout = '';
   let videoTerbuka = false;
 
-  // Data contoh produk
+  // Data default jika belum ada produk dari Admin
   const dataContoh = [
     { 
       id:1, nama:'Kaos Polos Combed', harga:75000, kategori:'Fashion', stok:99, 
-      deskripsi:'Kaos polos berkualitas tinggi dari bahan katun combed 30s. Lembut, menyerap keringat, nyaman dipakai sehari-hari. Jahitan rapi, awet tidak mudah melar. Tersedia berbagai ukuran dan warna.', 
+      deskripsi:'Kaos polos berkualitas tinggi dari bahan katun combed 30s. Lembut, menyerap keringat, nyaman dipakai sehari-hari.', 
       ukuran:'S,M,L,XL,XXL', varianWarna:'Putih,Hitam,Merah,Biru,Navy', 
       inisial:'K', warnaLatar:'#ff3b30', gambar:'', video:''
-    },
-    { 
-      id:2, nama:'Sepatu Sneakers Urban', harga:249000, kategori:'Fashion', stok:50, 
-      deskripsi:'Sepatu sneakers model terbaru desain modern. Bahan kulit sintetis berkualitas, sol karet empuk dan anti-slip. Ringan dipakai, cocok untuk jalan-jalan atau olahraga.', 
-      ukuran:'38,39,40,41,42,43,44', varianWarna:'Putih,Hitam,Putih-Hitam,Biru Muda', 
-      inisial:'S', warnaLatar:'#00c48c', gambar:'', video:''
-    },
-    { 
-      id:3, nama:'Earphone Bluetooth', harga:125000, kategori:'Elektronik', stok:30, 
-      deskripsi:'Earphone nirkabel suara jernih dan bass mantap. Mendukung panggilan telepon dengan mikrofon. Baterai tahan hingga 6 jam pemakaian. Koneksi stabil jarak 10 meter.', 
-      ukuran:'Standar', varianWarna:'Hitam,Putih,Biru,Merah', 
-      inisial:'E', warnaLatar:'#007aff', gambar:'', video:''
-    },
-    { 
-      id:4, nama:'Powerbank 10000mAh', harga:99000, kategori:'Aksesoris', stok:45, 
-      deskripsi:'Powerbank kapasitas besar 10000mAh. Dilengkapi 2 port USB bisa cas 2 HP sekaligus. Mendukung pengisian cepat. Indikator daya LED. Aman dan awet.', 
-      ukuran:'Standar', varianWarna:'Putih,Hitam,Merah,Emas,Perak', 
-      inisial:'P', warnaLatar:'#ff9500', gambar:'', video:''
     }
   ];
 
@@ -321,7 +304,7 @@
     return list;
   }
 
-  // Buat gambar otomatis
+  // Buat gambar otomatis jika tidak ada gambar upload
   function buatGambarProduk(inisial, warnaLatar) {
     const huruf = (inisial||'?').trim().charAt(0).toUpperCase();
     const warna = warnaLatar || '#888';
@@ -355,16 +338,17 @@
       const stokTeks = p.stok > 0 
         ? `<span class="stok-info">Stok: ${p.stok}</span>` 
         : `<span class="stok-info stok-habis">Stok Habis</span>`;
+      const tombolMati = p.stok <= 0 ? 'disabled' : '';
       return `
       <div class="produk-card ${p.stok<=0?'opacity-60':''}">
         <img src="${gambar}" class="w-full aspect-square object-cover" alt="${p.nama}" loading="lazy">
         <div class="p-3">
-          <p class="text-xs text-gray-500">${p.kategori}</p>
+          <p class="text-xs text-gray-500">${p.kategori||'Umum'}</p>
           <h3 class="font-semibold text-sm mt-1 line-clamp-2 text-gray-800">${p.nama}</h3>
           <p class="text-primary font-bold mt-1">Rp ${p.harga.toLocaleString('id-ID')}</p>
           ${stokTeks}
           <button onclick="bukaDetail(${p.id})" class="btn-detail mt-2">Lihat Detail</button>
-          <button onclick="tambahKeranjangLangsung(${p.id})" class="btn-keranjang" ${p.stok<=0?'disabled style=opacity:50':''}>${p.stok>0?'+ Keranjang':'Stok Habis'}</button>
+          <button onclick="tambahKeranjangLangsung(${p.id})" class="btn-keranjang" ${tombolMati}>${p.stok>0?'+ Keranjang':'Stok Habis'}</button>
         </div>
       </div>`;
     }).join('');
@@ -433,6 +417,7 @@
     document.getElementById('namaDetail').textContent = produkTerpilih.nama;
     document.getElementById('hargaDetail').textContent = 'Rp ' + produkTerpilih.harga.toLocaleString('id-ID');
     
+    // Tampilkan stok & cek ketersediaan
     if (produkTerpilih.stok > 0) {
       document.getElementById('stokDetail').textContent = `Stok Tersedia: ${produkTerpilih.stok}`;
       document.getElementById('stokDetail').className = 'stok-info';
@@ -445,15 +430,18 @@
       document.getElementById('btnBeliSekarang').classList.add('opacity-50');
     }
 
+    // Deskripsi
     document.getElementById('deskripsiDetail').textContent = produkTerpilih.deskripsi && produkTerpilih.deskripsi.trim() !== '' 
       ? produkTerpilih.deskripsi 
       : 'Belum ada deskripsi untuk produk ini.';
 
+    // Tampilkan Gambar (dari upload/admin atau otomatis)
     const gambar = produkTerpilih.gambar && produkTerpilih.gambar.trim() !== '' 
       ? produkTerpilih.gambar 
       : buatGambarProduk(produkTerpilih.inisial, produkTerpilih.warnaLatar);
     document.getElementById('gambarDetail').innerHTML = `<img src="${gambar}" class="w-full h-full object-cover" alt="${produkTerpilih.nama}" onerror="this.parentElement.innerHTML='<div class=\\'w-full h-full flex items-center justify-center text-8xl\\'>${produkTerpilih.inisial||'?'}</div>'">`;
 
+    // Tampilkan Video jika ada
     const sumberVideo = document.querySelector('#videoProduk source');
     const tombolVideo = document.getElementById('tombolVideo');
     const kotakVideo = document.getElementById('kotakVideo');
@@ -470,11 +458,13 @@
     }
     videoTerbuka = false;
 
+    // Pilihan Ukuran
     const daftarUkuran = (produkTerpilih.ukuran||'Standar').split(',').map(s=>s.trim()).filter(s=>s);
     document.getElementById('pilihUkuran').innerHTML = daftarUkuran.map(u=>`<button onclick="pilihUkuran('${u}')">${u}</button>`).join('');
     ukuranTerpilih = daftarUkuran[0];
     sorotPilihan('pilihUkuran', ukuranTerpilih);
 
+    // Pilihan Warna
     const daftarWarna = (produkTerpilih.varianWarna||'Standar').split(',').map(w=>w.trim()).filter(w=>w);
     document.getElementById('pilihWarna').innerHTML = daftarWarna.map(w=>`<button onclick="pilihWarna('${w}')">${w}</button>`).join('');
     warnaTerpilih = daftarWarna[0];
@@ -530,6 +520,7 @@
     el.value = v;
   }
 
+  // === KERANJANG ===
   function ambilKeranjang() { return JSON.parse(localStorage.getItem(KEY_KERANJANG)||'[]'); }
   function simpanKeranjang(k) { localStorage.setItem(KEY_KERANJANG, JSON.stringify(k)); }
   function hitungJumlahKeranjang() {
@@ -631,6 +622,7 @@
     tampilKeranjang();
   }
 
+  // === BELI SEKARANG ===
   function beliSekarang() {
     if (!produkTerpilih) return;
     if (produkTerpilih.stok <= 0) return alert('⚠️ Maaf, stok habis!');
@@ -650,6 +642,7 @@
     bukaHalamanCheckout();
   }
 
+  // === CHECKOUT ===
   function bukaCheckout() {
     const k = ambilKeranjang();
     if (!k.length) return alert('Keranjang masih kosong!');
@@ -697,6 +690,7 @@
     }
   }
 
+  // === KONFIRMASI PESANAN & KURANGI STOK ===
   function konfirmasiPesanan() {
     const nama = document.getElementById('namaPenerima').value.trim();
     const telp = document.getElementById('telpPenerima').value.trim();
@@ -712,6 +706,7 @@
     if (!items || !items.length) return alert('⚠️ Tidak ada pesanan!');
 
     const semuaProduk = ambilProduk();
+    // Cek stok sebelum mengurangi
     for (const item of items) {
       const p = semuaProduk.find(x=>x.id===item.id);
       if (!p || p.stok < item.qty) {
@@ -719,7 +714,7 @@
       }
     }
 
-    // Kurangi stok
+    // ✅ KURANGI STOK & SIMPAN KE DATABASE (TERHUBUNG DENGAN ADMIN)
     items.forEach(item=>{
       const idx = semuaProduk.findIndex(x=>x.id===item.id);
       if (idx >= 0) { semuaProduk[idx].stok -= item.qty; }
@@ -728,7 +723,7 @@
 
     const total = items.reduce((s,i)=>s + i.harga*i.qty,0);
 
-    // Simpan transaksi dengan status awal
+    // ✅ SIMPAN TRANSAKSI TERHUBUNG DENGAN ADMIN
     const transaksi = ambilData(KEY_TRANSAKSI);
     transaksi.push({
       tanggal: new Date().toISOString(),
@@ -738,7 +733,7 @@
       pembayaran: metodeBayarTerpilih,
       status: 'menunggu'
     });
-        simpanData(KEY_TRANSAKSI, transaksi);
+    simpanData(KEY_TRANSAKSI, transaksi);
 
     // Kosongkan keranjang jika dari keranjang
     if (sumberCheckout === 'keranjang') {
@@ -753,11 +748,20 @@
     bukaHalamanStatus();
   }
 
-  // Inisialisasi saat halaman dimuat
+  // === INISIALISASI ===
   document.addEventListener('DOMContentLoaded', function() {
     muatKategori();
     renderProduk();
     hitungJumlahKeranjang();
+  });
+
+  // === SINKRON OTOMATIS JIKA ADA PERUBAHAN D
+  // === SINKRON OTOMATIS JIKA ADA PERUBAHAN DARI HALAMAN ADMIN ===
+  window.addEventListener('storage', function(e) {
+    if (e.key === KEY_PRODUK || e.key === KEY_TRANSAKSI) {
+      renderProduk();
+      hitungJumlahKeranjang();
+    }
   });
 </script>
 </body>
