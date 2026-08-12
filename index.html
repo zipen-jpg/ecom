@@ -14,8 +14,8 @@
         colors: {
           primary: '#ff2d55',
           secondary: '#00c48c',
-          gelap: '#121212',
-          kartu: '#1e1e1e'
+          gelap: '#f9f9f9',
+          kartu: '#ffffff'
         },
         fontFamily: {
           display: ['Sora', 'sans-serif'],
@@ -28,50 +28,56 @@
 <style>
   * { font-family: 'Plus Jakarta Sans', sans-serif; }
   .font-display { font-family: 'Sora', sans-serif; }
-  body { background: #0d0d0d; color: #fff; padding-bottom: 80px; }
+  body { background: #ffffff; color: #1a1a1a; padding-bottom: 80px; }
   .hidden { display: none !important; }
   .produk-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
   @media (min-width: 768px) { .produk-grid { grid-template-columns: repeat(3, 1fr); } }
   @media (min-width: 1024px) { .produk-grid { grid-template-columns: repeat(4, 1fr); } }
-  .produk-card { background: #1e1e1e; border-radius: 14px; overflow: hidden; }
+  .produk-card { background: #f5f5f7; border-radius: 14px; overflow: hidden; border: 1px solid #eaeaea; }
   .btn-detail { border: 1px solid #ff2d55; color: #ff2d55; border-radius: 10px; padding: 8px; font-size: 14px; font-weight: 600; width: 100%; margin-bottom: 8px; transition: all .2s; background: transparent; cursor: pointer; }
   .btn-detail:active { background: #ff2d55; color: #fff; }
   .btn-keranjang { background: #ff2d55; color: #fff; border-radius: 10px; padding: 10px; font-size: 14px; font-weight: 600; width: 100%; border: none; transition: all .2s; cursor: pointer; }
   .btn-keranjang:active { transform: scale(.97); }
-  .kategori-tab { padding: 8px 18px; border-radius: 20px; font-size: 14px; border: none; background: #2a2a2a; color: #ccc; white-space: nowrap; cursor: pointer; }
+  .kategori-tab { padding: 8px 18px; border-radius: 20px; font-size: 14px; border: none; background: #f0f0f0; color: #555; white-space: nowrap; cursor: pointer; }
   .kategori-tab.aktif { background: #ff2d55; color: #fff; }
   .pilihan { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-  .pilihan button { border: 1px solid #444; background: #2a2a2a; color: #fff; border-radius: 8px; padding: 6px 14px; font-size: 14px; cursor: pointer; transition: all .2s; }
-  .pilihan button.pilih { border-color: #ff2d55; background: #ff2d55; color: #fff; }
-  input, select { background: #2a2a2a; border: 1px solid #444; border-radius: 8px; padding: 8px 10px; color: #fff; width: 100%; outline: none; font-size: 15px; }
+  .pilihan button { border: 1px solid #ddd; background: #fff; color: #333; border-radius: 8px; padding: 6px 14px; font-size: 14px; cursor: pointer; transition: all .2s; }
+  .pilihan button.pilih { border-color: #ff2d55; background: #fff0f3; color: #ff2d55; font-weight: 600; }
+  input, select { background: #f8f8f8; border: 1px solid #ddd; border-radius: 8px; padding: 8px 10px; color: #222; width: 100%; outline: none; font-size: 15px; }
   input:focus, select:focus { border-color: #ff2d55; }
   input[type="number"] { width: 55px; text-align: center; padding: 6px 4px; }
-  .metode-bayar-item { border: 1px solid #444; border-radius: 10px; padding: 12px; margin-bottom: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
-  .metode-bayar-item.terpilih { border-color: #ff2d55; background: rgba(255,45,85,0.1); }
+  .metode-bayar-item { border: 1px solid #ddd; border-radius: 10px; padding: 12px; margin-bottom: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; background: #fff; }
+  .metode-bayar-item.terpilih { border-color: #ff2d55; background: #fff0f3; }
   .stok-info { font-size: 13px; color: #00c48c; font-weight: 500; }
   .stok-habis { color: #ff3b30; }
-  textarea { background: #2a2a2a; border: 1px solid #444; border-radius: 8px; padding: 10px; color: #fff; width: 100%; outline: none; }
+  textarea { background: #f8f8f8; border: 1px solid #ddd; border-radius: 8px; padding: 10px; color: #222; width: 100%; outline: none; }
   textarea:focus { border-color: #ff2d55; }
+  .video-btn { background: linear-gradient(135deg, #ff2d55, #ff6b81); color: white; border: none; border-radius: 10px; padding: 10px 16px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; margin-bottom: 16px; transition: transform .2s; }
+  .video-btn:active { transform: scale(.97); }
+  .video-container { width: 100%; border-radius: 12px; overflow: hidden; background: #000; margin-bottom: 16px; display: none; }
+  .video-container.show { display: block; }
+  .video-container video { width: 100%; display: block; }
+  .bg-kartu { background: #ffffff; border: 1px solid #eee; }
 </style>
 </head>
 <body>
 
 <!-- === HALAMAN UTAMA === -->
 <div id="halamanToko" class="pb-20">
-  <header class="sticky top-0 bg-black/80 backdrop-blur-sm px-4 py-3 z-30">
+  <header class="sticky top-0 bg-white/90 backdrop-blur-sm px-4 py-3 z-30 border-b border-gray-100">
     <div class="flex items-center justify-between mb-3">
       <h1 class="font-display font-800 text-2xl flex items-center gap-2">
-        <span class="bg-primary rounded-lg w-10 h-10 flex items-center justify-center">⚡</span> Toko.
+        <span class="bg-primary rounded-lg w-10 h-10 flex items-center justify-center text-white">⚡</span> Toko.
       </h1>
       <div class="flex items-center gap-3">
         <button onclick="bukaKeranjang()" class="relative">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="white" viewBox="0 0 256 256"><path d="M88,216a16,16,0,1,1-16-16A16,16,0,0,1,88,216Zm80-16a16,16,0,1,0,16,16A16,16,0,0,0,168,200Zm44-136H62.7L52.8,36.4A8,8,0,0,0,45.4,32H24A8,8,0,0,0,24,48H44.3L61,165.3a24,24,0,0,0,23.7,20.7H196a8,8,0,0,0,0-16H85.7a8,8,0,0,1-7.9-7L76,152H196a24,24,0,0,0,23.7-20.1l13.2-72A8,8,0,0,0,228,64Zm-16.6,24-13.2,72a8,8,0,0,1-7.9,7H74.7L62.7,88Z"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#1a1a1a" viewBox="0 0 256 256"><path d="M88,216a16,16,0,1,1-16-16A16,16,0,0,1,88,216Zm80-16a16,16,0,1,0,16,16A16,16,0,0,0,168,200Zm44-136H62.7L52.8,36.4A8,8,0,0,0,45.4,32H24A8,8,0,0,0,24,48H44.3L61,165.3a24,24,0,0,0,23.7,20.7H196a8,8,0,0,0,0-16H85.7a8,8,0,0,1-7.9-7L76,152H196a24,24,0,0,0,23.7-20.1l13.2-72A8,8,0,0,0,228,64Zm-16.6,24-13.2,72a8,8,0,0,1-7.9,7H74.7L62.7,88Z"/></svg>
           <span id="jumlahKeranjang" class="absolute -top-2 -right-2 bg-primary text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">0</span>
         </button>
         <a href="admin.html" class="border border-primary text-primary rounded-lg px-3 py-1.5 text-sm font-semibold">Admin →</a>
       </div>
     </div>
-    <input id="cariProduk" oninput="renderProduk()" type="text" placeholder="Cari produk..." class="w-full bg-kartu border border-gray-700 rounded-xl px-4 py-3 text-sm">
+    <input id="cariProduk" oninput="renderProduk()" type="text" placeholder="Cari produk..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm">
   </header>
 
   <div class="px-4 py-3 overflow-x-auto">
@@ -85,31 +91,43 @@
 
 <!-- === HALAMAN DETAIL PRODUK === -->
 <div id="halamanDetail" class="hidden pb-24">
-  <header class="sticky top-0 bg-black/80 backdrop-blur-sm px-4 py-3 flex items-center gap-3 z-30">
-    <button onclick="tutupDetail()" class="text-xl">←</button>
-    <h1 id="judulDetail" class="font-display font-700 text-lg truncate"></h1>
+  <header class="sticky top-0 bg-white/90 backdrop-blur-sm px-4 py-3 flex items-center gap-3 z-30 border-b border-gray-100">
+    <button onclick="tutupDetail()" class="text-xl text-gray-800">←</button>
+    <h1 id="judulDetail" class="font-display font-700 text-lg truncate text-gray-800"></h1>
   </header>
   <div class="px-4 pt-4">
-    <div id="gambarDetail" class="w-full aspect-square rounded-xl overflow-hidden mb-4 bg-kartu flex items-center justify-center"></div>
-    <h2 id="namaDetail" class="font-display font-700 text-2xl mb-2"></h2>
+    <div id="gambarDetail" class="w-full aspect-square rounded-xl overflow-hidden mb-4 bg-gray-100 flex items-center justify-center"></div>
+    
+    <!-- 🆕 TOMBOL & PEMUTAR VIDEO PRODUK -->
+    <button id="tombolVideo" onclick="putarVideo()" class="video-btn">
+      ▶️ Tonton Video Produk
+    </button>
+    <div id="kotakVideo" class="video-container">
+      <video id="videoProduk" controls playsinline>
+        <source src="" type="video/mp4">
+        Browser Anda tidak mendukung pemutaran video.
+      </video>
+    </div>
+
+    <h2 id="namaDetail" class="font-display font-700 text-2xl mb-2 text-gray-800"></h2>
     <p id="hargaDetail" class="text-primary font-bold text-xl mb-1"></p>
     <p id="stokDetail" class="stok-info mb-3"></p>
-    <p id="deskripsiDetail" class="text-gray-400 text-sm mb-5 leading-relaxed"></p>
+    <p id="deskripsiDetail" class="text-gray-600 text-sm mb-5 leading-relaxed"></p>
 
     <div class="mb-4">
-      <p class="font-semibold mb-1">Ukuran</p>
+      <p class="font-semibold mb-1 text-gray-700">Ukuran</p>
       <div id="pilihUkuran" class="pilihan"></div>
     </div>
     <div class="mb-4">
-      <p class="font-semibold mb-1">Warna</p>
+      <p class="font-semibold mb-1 text-gray-700">Warna</p>
       <div id="pilihWarna" class="pilihan"></div>
     </div>
     <div class="mb-6">
-      <p class="font-semibold mb-2">Jumlah</p>
+      <p class="font-semibold mb-2 text-gray-700">Jumlah</p>
       <div class="flex items-center gap-3">
-        <button onclick="ubahJumlah(-1)" class="w-9 h-9 rounded-full bg-kartu text-lg flex items-center justify-center">-</button>
+        <button onclick="ubahJumlah(-1)" class="w-9 h-9 rounded-full bg-gray-100 text-lg flex items-center justify-center text-gray-800 border border-gray-200">-</button>
         <input id="jumlahBeli" type="number" value="1" min="1" readonly>
-        <button onclick="ubahJumlah(1)" class="w-9 h-9 rounded-full bg-kartu text-lg flex items-center justify-center">+</button>
+        <button onclick="ubahJumlah(1)" class="w-9 h-9 rounded-full bg-gray-100 text-lg flex items-center justify-center text-gray-800 border border-gray-200">+</button>
       </div>
     </div>
 
@@ -122,17 +140,17 @@
 
 <!-- === HALAMAN KERANJANG === -->
 <div id="halamanKeranjang" class="hidden pb-32">
-  <header class="sticky top-0 bg-black/80 backdrop-blur-sm px-4 py-3 flex items-center gap-3 z-30">
-    <button onclick="tutupKeranjang()" class="text-xl">←</button>
-    <h1 class="font-display font-700 text-lg">Keranjang</h1>
+  <header class="sticky top-0 bg-white/90 backdrop-blur-sm px-4 py-3 flex items-center gap-3 z-30 border-b border-gray-100">
+    <button onclick="tutupKeranjang()" class="text-xl text-gray-800">←</button>
+    <h1 class="font-display font-700 text-lg text-gray-800">Keranjang</h1>
   </header>
   <div class="px-4 pt-3">
     <div id="isiKeranjang"></div>
-    <p id="keranjangKosong" class="text-center text-gray-500 py-12">Keranjang masih kosong</p>
+    <p id="keranjangKosong" class="text-center text-gray-400 py-12">Keranjang masih kosong</p>
   </div>
-  <div class="fixed bottom-0 left-0 right-0 bg-kartu border-t border-gray-800 px-4 py-3">
+  <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3">
     <div class="flex justify-between items-center mb-2">
-      <span class="font-semibold">Total:</span>
+      <span class="font-semibold text-gray-700">Total:</span>
       <span id="totalKeranjang" class="font-bold text-primary text-lg">Rp 0</span>
     </div>
     <button onclick="bukaCheckout()" class="w-full bg-primary text-white py-3 rounded-xl font-bold">Checkout</button>
@@ -141,71 +159,71 @@
 
 <!-- === HALAMAN CHECKOUT === -->
 <div id="halamanCheckout" class="hidden pb-32">
-  <header class="sticky top-0 bg-black/80 backdrop-blur-sm px-4 py-3 flex items-center gap-3 z-30">
-    <button onclick="kembaliKeSebelumnya()" class="text-xl">←</button>
-    <h1 class="font-display font-700 text-lg">Checkout</h1>
+  <header class="sticky top-0 bg-white/90 backdrop-blur-sm px-4 py-3 flex items-center gap-3 z-30 border-b border-gray-100">
+    <button onclick="kembaliKeSebelumnya()" class="text-xl text-gray-800">←</button>
+    <h1 class="font-display font-700 text-lg text-gray-800">Checkout</h1>
   </header>
   <div class="px-4 pt-3 space-y-5">
-    <div class="bg-kartu p-4 rounded-xl">
-      <h3 class="font-semibold mb-3">📍 Data Penerima</h3>
+    <div class="bg-white p-4 rounded-xl border border-gray-200">
+      <h3 class="font-semibold mb-3 text-gray-700">📍 Data Penerima</h3>
       <div class="space-y-3">
         <div>
-          <label class="text-sm text-gray-400 mb-1 block">Nama Lengkap</label>
+          <label class="text-sm text-gray-500 mb-1 block">Nama Lengkap</label>
           <input type="text" id="namaPenerima" placeholder="Masukkan nama penerima">
         </div>
         <div>
-          <label class="text-sm text-gray-400 mb-1 block">No. Telepon</label>
+          <label class="text-sm text-gray-500 mb-1 block">No. Telepon</label>
           <input type="tel" id="telpPenerima" placeholder="Contoh: 081234567890">
         </div>
         <div>
-          <label class="text-sm text-gray-400 mb-1 block">Alamat Lengkap</label>
+          <label class="text-sm text-gray-500 mb-1 block">Alamat Lengkap</label>
           <textarea id="alamatPenerima" rows="3" placeholder="Jalan, RT/RW, Kecamatan, Kabupaten, Provinsi..." class="w-full border rounded-lg p-3"></textarea>
         </div>
         <div>
-          <label class="text-sm text-gray-400 mb-1 block">Kode Pos</label>
+          <label class="text-sm text-gray-500 mb-1 block">Kode Pos</label>
           <input type="text" id="kodePos" placeholder="Contoh: 12345">
         </div>
       </div>
     </div>
 
-    <div class="bg-kartu p-4 rounded-xl">
-      <h3 class="font-semibold mb-3">💳 Metode Pembayaran</h3>
+    <div class="bg-white p-4 rounded-xl border border-gray-200">
+      <h3 class="font-semibold mb-3 text-gray-700">💳 Metode Pembayaran</h3>
       <div id="daftarMetodeBayar">
         <div class="metode-bayar-item terpilih" data-metode="COD" onclick="pilihMetodeBayar('COD')">
           <span>💰</span>
           <div>
-            <p class="font-semibold text-sm">Bayar di Tempat (COD)</p>
-            <p class="text-xs text-gray-400">Bayar saat barang sampai</p>
+            <p class="font-semibold text-sm text-gray-800">Bayar di Tempat (COD)</p>
+            <p class="text-xs text-gray-500">Bayar saat barang sampai</p>
           </div>
         </div>
         <div class="metode-bayar-item" data-metode="Transfer Bank" onclick="pilihMetodeBayar('Transfer Bank')">
           <span>🏦</span>
           <div>
-            <p class="font-semibold text-sm">Transfer Bank</p>
-            <p class="text-xs text-gray-400">BCA, BRI, Mandiri, dll</p>
+            <p class="font-semibold text-sm text-gray-800">Transfer Bank</p>
+            <p class="text-xs text-gray-500">BCA, BRI, Mandiri, dll</p>
           </div>
         </div>
         <div class="metode-bayar-item" data-metode="E-Wallet" onclick="pilihMetodeBayar('E-Wallet')">
           <span>📱</span>
           <div>
-            <p class="font-semibold text-sm">E-Wallet</p>
-            <p class="text-xs text-gray-400">DANA, OVO, GoPay, ShopeePay</p>
+            <p class="font-semibold text-sm text-gray-800">E-Wallet</p>
+            <p class="text-xs text-gray-500">DANA, OVO, GoPay, ShopeePay</p>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="bg-kartu p-4 rounded-xl">
-      <h3 class="font-semibold mb-3">📋 Ringkasan Pesanan</h3>
-      <div id="ringkasCheckout" class="space-y-2 text-sm"></div>
-      <div class="border-t border-gray-700 mt-3 pt-3 flex justify-between font-bold text-lg">
-        <span>Total Pembayaran</span>
+    <div class="bg-white p-4 rounded-xl border border-gray-200">
+      <h3 class="font-semibold mb-3 text-gray-700">📋 Ringkasan Pesanan</h3>
+      <div id="ringkasCheckout" class="space-y-2 text-sm text-gray-700"></div>
+      <div class="border-t border-gray-200 mt-3 pt-3 flex justify-between font-bold text-lg">
+        <span class="text-gray-800">Total Pembayaran</span>
         <span id="totalCheckout" class="text-primary"></span>
       </div>
     </div>
   </div>
 
-  <div class="fixed bottom-0 left-0 right-0 bg-kartu border-t border-gray-800 px-4 py-3">
+  <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3">
     <button onclick="konfirmasiPesanan()" id="btnKonfirmasi" class="w-full bg-primary text-white py-3 rounded-xl font-bold">✓ Konfirmasi Pesanan</button>
   </div>
 </div>
@@ -220,32 +238,37 @@
   let warnaTerpilih = null;
   let metodeBayarTerpilih = 'COD';
   let sumberCheckout = '';
+  let videoTerbuka = false; // Status pemutar video
 
-  // Data lengkap dengan deskripsi & ukuran/warna SESUAI barang
+  // Data lengkap dengan deskripsi, ukuran, warna, dan tautan video
   const dataContoh = [
     { 
       id:1, nama:'Kaos Polos Combed', harga:75000, kategori:'Fashion', stok:99, 
       deskripsi:'Kaos polos berkualitas tinggi dari bahan katun combed 30s. Lembut, menyerap keringat, nyaman dipakai sehari-hari. Jahitan rapi, awet tidak mudah melar. Tersedia berbagai ukuran dan warna.', 
       ukuran:'S,M,L,XL,XXL', varianWarna:'Putih,Hitam,Merah,Biru,Navy', 
-      inisial:'K', warnaLatar:'#ff3b30', gambar:'' 
+      inisial:'K', warnaLatar:'#ff3b30', gambar:'',
+      video: '' // Masukkan link video produk di sini
     },
     { 
       id:2, nama:'Sepatu Sneakers Urban', harga:249000, kategori:'Fashion', stok:50, 
       deskripsi:'Sepatu sneakers model terbaru desain modern. Bahan kulit sintetis berkualitas, sol karet empuk dan anti-slip. Ringan dipakai, cocok untuk jalan-jalan atau olahraga.', 
       ukuran:'38,39,40,41,42,43,44', varianWarna:'Putih,Hitam,Putih-Hitam,Biru Muda', 
-      inisial:'S', warnaLatar:'#00c48c', gambar:'' 
+      inisial:'S', warnaLatar:'#00c48c', gambar:'',
+      video: '' // Masukkan link video produk di sini
     },
     { 
       id:3, nama:'Earphone Bluetooth', harga:125000, kategori:'Elektronik', stok:30, 
       deskripsi:'Earphone nirkabel suara jernih dan bass mantap. Mendukung panggilan telepon dengan mikrofon. Baterai tahan hingga 6 jam pemakaian. Koneksi stabil jarak 10 meter.', 
       ukuran:'Standar', varianWarna:'Hitam,Putih,Biru,Merah', 
-      inisial:'E', warnaLatar:'#007aff', gambar:'' 
+      inisial:'E', warnaLatar:'#007aff', gambar:'',
+      video: '' // Masukkan link video produk di sini
     },
     { 
       id:4, nama:'Powerbank 10000mAh', harga:99000, kategori:'Aksesoris', stok:45, 
       deskripsi:'Powerbank kapasitas besar 10000mAh. Dilengkapi 2 port USB bisa cas 2 HP sekaligus. Mendukung pengisian cepat. Indikator daya LED. Aman dan awet.', 
       ukuran:'Standar', varianWarna:'Putih,Hitam,Merah,Emas,Perak', 
-      inisial:'P', warnaLatar:'#ff9500', gambar:'' 
+      inisial:'P', warnaLatar:'#ff9500', gambar:'',
+      video: '' // Masukkan link video produk di sini
     }
   ];
 
@@ -302,8 +325,8 @@
       <div class="produk-card ${p.stok<=0?'opacity-60':''}">
         <img src="${gambar}" class="w-full aspect-square object-cover" alt="${p.nama}" loading="lazy">
         <div class="p-3">
-          <p class="text-xs text-gray-400">${p.kategori}</p>
-          <h3 class="font-semibold text-sm mt-1 line-clamp-2">${p.nama}</h3>
+          <p class="text-xs text-gray-500">${p.kategori}</p>
+          <h3 class="font-semibold text-sm mt-1 line-clamp-2 text-gray-800">${p.nama}</h3>
           <p class="text-primary font-bold mt-1">Rp ${p.harga.toLocaleString('id-ID')}</p>
           ${stokTeks}
           <button onclick="bukaDetail(${p.id})" class="btn-detail mt-2">Lihat Detail</button>
@@ -346,6 +369,23 @@
       : buatGambarProduk(produkTerpilih.inisial, produkTerpilih.warnaLatar);
     document.getElementById('gambarDetail').innerHTML = `<img src="${gambar}" class="w-full h-full object-cover" alt="${produkTerpilih.nama}" onerror="this.parentElement.innerHTML='<div class=\\'w-full h-full flex items-center justify-center text-8xl\\'>${produkTerpilih.inisial||'?'}</div>'">`;
 
+    // 🆕 SET LINK VIDEO PRODUK
+    const sumberVideo = document.querySelector('#videoProduk source');
+    const tombolVideo = document.getElementById('tombolVideo');
+    const kotakVideo = document.getElementById('kotakVideo');
+    const elemenVideo = document.getElementById('videoProduk');
+    
+    if (produkTerpilih.video && produkTerpilih.video.trim() !== '') {
+      sumberVideo.src = produkTerpilih.video;
+      elemenVideo.load();
+      tombolVideo.style.display = 'flex';
+    } else {
+      tombolVideo.style.display = 'none';
+      kotakVideo.classList.remove('show');
+      elemenVideo.pause();
+    }
+    videoTerbuka = false;
+
     // UKURAN SESUAI BARANG
     const daftarUkuran = (produkTerpilih.ukuran||'Standar').split(',').map(s=>s.trim()).filter(s=>s);
     document.getElementById('pilihUkuran').innerHTML = daftarUkuran.map(u=>`<button onclick="pilihUkuran('${u}')">${u}</button>`).join('');
@@ -364,7 +404,33 @@
     document.getElementById('halamanDetail').classList.remove('hidden');
   }
 
+  // 🆕 FUNGSI PEMUTAR VIDEO
+  function putarVideo() {
+    const kotakVideo = document.getElementById('kotakVideo');
+    const elemenVideo = document.getElementById('videoProduk');
+    const tombolVideo = document.getElementById('tombolVideo');
+
+    if (!videoTerbuka) {
+      kotakVideo.classList.add('show');
+      elemenVideo.play().catch(() => {});
+      tombolVideo.innerHTML = '⏹️ Tutup Video';
+      videoTerbuka = true;
+    } else {
+      elemenVideo.pause();
+      elemenVideo.currentTime = 0;
+      kotakVideo.classList.remove('show');
+      tombolVideo.innerHTML = '▶️ Tonton Video Produk';
+      videoTerbuka = false;
+    }
+  }
+
   function tutupDetail() {
+    // Hentikan video saat keluar halaman
+    const elemenVideo = document.getElementById('videoProduk');
+    if (elemenVideo) {
+      elemenVideo.pause();
+      elemenVideo.currentTime = 0;
+    }
     document.getElementById('halamanDetail').classList.add('hidden');
     document.getElementById('halamanToko').classList.remove('hidden');
     produkTerpilih = null;
@@ -449,16 +515,16 @@
     const k = ambilKeranjang();
     document.getElementById('keranjangKosong').classList.toggle('hidden', k.length>0);
     document.getElementById('isiKeranjang').innerHTML = k.map((item,i)=>`
-      <div class="bg-kartu rounded-xl p-3 mb-3 flex gap-3 items-center">
+      <div class="bg-gray-50 rounded-xl p-3 mb-3 flex gap-3 items-center border border-gray-100">
         <img src="${item.gambar}" class="w-16 h-16 rounded-lg object-cover" alt="${item.nama}">
         <div class="flex-1">
-          <h4 class="font-semibold text-sm">${item.nama}</h4>
-          <p class="text-xs text-gray-400">${item.ukuran} / ${item.warna}</p>
+          <h4 class="font-semibold text-sm text-gray-800">${item.nama}</h4>
+          <p class="text-xs text-gray-500">${item.ukuran} / ${item.warna}</p>
           <p class="text-primary font-bold text-sm">Rp ${item.harga.toLocaleString('id-ID')}</p>
           <div class="flex items-center gap-2 mt-1">
-            <button onclick="ubahQtyKeranjang(${i},-1)" class="w-7 h-7 rounded-full bg-gray-700 text-xs">-</button>
-            <span class="text-sm font-semibold">${item.qty}</span>
-            <button onclick="ubahQtyKeranjang(${i},1)" class="w-7 h-7 rounded-full bg-gray-700 text-xs">+</button>
+            <button onclick="ubahQtyKeranjang(${i},-1)" class="w-7 h-7 rounded-full bg-gray-200 text-xs text-gray-800">-</button>
+            <span class="text-sm font-semibold text-gray-800">${item.qty}</span>
+            <button onclick="ubahQtyKeranjang(${i},1)" class="w-7 h-7 rounded-full bg-gray-200 text-xs text-gray-800">+</button>
             <button onclick="hapusItemKeranjang(${i})" class="ml-auto text-red-500 text-xs">Hapus</button>
           </div>
         </div>
@@ -531,7 +597,7 @@
 
     document.getElementById('ringkasCheckout').innerHTML = items.map(i=>`
       <div class="flex justify-between">
-        <span>${i.nama} × ${i.qty}<br><small class="text-gray-400">${i.ukuran} / ${i.warna}</small></span>
+        <span>${i.nama} × ${i.qty}<br><small class="text-gray-500">${i.ukuran} / ${i.warna}</small></span>
         <span>Rp ${(i.harga*i.qty).toLocaleString('id-ID')}</span>
       </div>
     `).join('');
